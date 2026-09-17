@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\SupplierController;
 use App\Http\Controllers\Client\ClientUserController;
+use App\Http\Controllers\SupplierStaff\EventController;
 use App\Http\Controllers\SupplierStaff\SupplierStaffUserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -72,12 +73,30 @@ Route::middleware('auth:admin')->prefix('admin')->group(function () {
 Route::middleware('auth:supplier_staff')->prefix('supplier_staff')->group(function () {
     Route::get('/profile', [SupplierStaffUserController::class, 'profile'])
         ->name('supplier_staff.profile');
-    
+
     Route::put('/profile', [SupplierStaffUserController::class, 'updateProfile'])
         ->name('supplier_staff.update_profile');
-    
+
     Route::put('/password', [SupplierStaffUserController::class, 'changePassword'])
         ->name('supplier_staff.change_password');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Protected Supplier Routes
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware('auth:supplier_staff')->prefix('suppliers')->group(function () {
+    // Event Management
+    Route::get('/events', [EventController::class, 'index'])
+        ->name('suppliers.events.index');
+
+    Route::post('/events', [EventController::class, 'store'])
+        ->name('suppliers.events.store');
+
+    Route::put('/events/{id}', [EventController::class, 'update'])
+        ->name('suppliers.events.update');
 });
 
 /*

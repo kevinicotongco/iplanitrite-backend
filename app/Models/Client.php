@@ -9,11 +9,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
 class Client extends Authenticatable
 {
-    use HasApiTokens, HasUuids, SoftDeletes;
+    use HasApiTokens, HasUuids, Notifiable, SoftDeletes;
 
     protected $keyType = 'string';
     public $incrementing = false;
