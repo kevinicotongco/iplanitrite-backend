@@ -20,19 +20,7 @@ class Supplier extends Model
     protected $keyType = 'string';
     public $incrementing = false;
 
-    protected $fillable = [
-        'name',
-        'status',
-        'logo',
-        'description',
-        'address_id',
-        'country_id',
-        'contact_number_id',
-        'subscription_tier',
-        'timezone',
-        'created_by',
-        'updated_by',
-    ];
+    protected $guarded = [];
 
     protected $casts = [
         'status' => SupplierStatusEnum::class,

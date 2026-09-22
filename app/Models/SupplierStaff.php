@@ -19,21 +19,7 @@ class SupplierStaff extends Authenticatable
     protected $keyType = 'string';
     public $incrementing = false;
 
-    protected $fillable = [
-        'supplier_id',
-        'supplier_role_id',
-        'email',
-        'password',
-        'password_must_change',
-        'first_name',
-        'middle_name',
-        'last_name',
-        'profile_picture',
-        'address_id',
-        'contact_number_id',
-        'created_by',
-        'updated_by',
-    ];
+    protected $guarded = [];
 
     protected $hidden = [
         'password',

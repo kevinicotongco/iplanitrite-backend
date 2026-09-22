@@ -17,17 +17,7 @@ class Country extends Model
     public $incrementing = false;
     public $timestamps = false;
 
-    protected $fillable = [
-        'name',
-        'iso2_code',
-        'iso3_code',
-        'language_locale',
-        'calling_code',
-        'flag',
-        'currency_code',
-        'currency_name',
-        'currency_symbol',
-    ];
+    protected $guarded = [];
 
     public function contactNumbers(): HasMany
     {

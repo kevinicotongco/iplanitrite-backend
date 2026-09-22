@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Dto\Response;
 
+use App\Data\EventWithRelationsData;
 use App\Models\Event;
 
 readonly class EventResponseDto
@@ -39,6 +40,28 @@ readonly class EventResponseDto
                 : null,
             address: $event->address
                 ? AddressResponseDto::fromModel($event->address)
+                : null,
+        );
+    }
+
+    public static function fromEventData(EventWithRelationsData $eventData): self
+    {
+        return new self(
+            id: $eventData->id,
+            supplierId: $eventData->supplierId,
+            name: $eventData->name,
+            description: $eventData->description,
+            status: $eventData->status->value,
+            eventType: $eventData->eventType->value,
+            eventDate: $eventData->eventDate,
+            celebrantOne: $eventData->celebrantOne
+                ? CelebrantResponseDto::fromCelebrantData($eventData->celebrantOne)
+                : null,
+            celebrantTwo: $eventData->celebrantTwo
+                ? CelebrantResponseDto::fromCelebrantData($eventData->celebrantTwo)
+                : null,
+            address: $eventData->address
+                ? AddressResponseDto::fromAddressData($eventData->address)
                 : null,
         );
     }

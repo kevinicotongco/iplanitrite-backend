@@ -104,9 +104,7 @@ use Illuminate\Support\Facades\DB;
  */
 class EventController extends Controller
 {
-    public function __construct(
-        private readonly EventService $service
-    ) {}
+    public function __construct() {}
 
     /**
      * Get filtered events
@@ -153,9 +151,12 @@ class EventController extends Controller
 
         $dto = GetEventsRequestDto::fromArray($request->validated());
 
-        $events = $this->service->getEvents($supplierId, $dto);
+        // Create service instance with authenticated user
+        $service = $this->createEventService($staff);
 
-        $response = $events->map(fn($event) => EventResponseDto::fromModel($event)->toArray());
+        $events = $service->getEvents($supplierId, $dto);
+
+        $response = $events->map(fn($eventData) => EventResponseDto::fromEventData($eventData)->toArray());
 
         return response()->json($response, 200);
     }
@@ -199,15 +200,17 @@ class EventController extends Controller
         $supplierId = $staff->supplier_id;
         $supplier = $staff->supplier;
         $countryId = $supplier->country_id;
-        $createdBy = $staff->id;
 
         $dto = CreateEventRequestDto::fromArray($request->validated());
 
-        $event = DB::transaction(function () use ($supplierId, $countryId, $dto, $createdBy) {
-            return $this->service->createEvent($supplierId, $countryId, $dto, $createdBy);
+        // Create service instances with authenticated user
+        $service = $this->createEventService($staff);
+
+        $eventData = DB::transaction(function () use ($service, $supplierId, $countryId, $dto) {
+            return $service->createEvent($supplierId, $countryId, $dto);
         });
 
-        $responseDto = EventResponseDto::fromModel($event);
+        $responseDto = EventResponseDto::fromEventData($eventData);
 
         return response()->json($responseDto->toArray(), 201);
     }
@@ -263,16 +266,50 @@ class EventController extends Controller
         $supplierId = $staff->supplier_id;
         $supplier = $staff->supplier;
         $countryId = $supplier->country_id;
-        $updatedBy = $staff->id;
 
         $dto = UpdateEventRequestDto::fromArray($request->validated());
 
-        $event = DB::transaction(function () use ($id, $supplierId, $countryId, $dto, $updatedBy) {
-            return $this->service->updateEvent($id, $supplierId, $countryId, $dto, $updatedBy);
+        // Create service instances with authenticated user
+        $service = $this->createEventService($staff);
+
+        $eventData = DB::transaction(function () use ($service, $id, $supplierId, $countryId, $dto) {
+            return $service->updateEvent($id, $supplierId, $countryId, $dto);
         });
 
-        $responseDto = EventResponseDto::fromModel($event);
+        $responseDto = EventResponseDto::fromEventData($eventData);
 
         return response()->json($responseDto->toArray(), 200);
+    }
+
+    /**
+     * Create EventService with all dependencies injected with authenticated user
+     */
+    private function createEventService($staff): EventService
+    {
+        $contactNumberService = app(\App\Services\SupplierStaff\ContactNumberService::class, ['authenticatedUser' => $staff]);
+        $addressService = app(\App\Services\SupplierStaff\AddressService::class, ['authenticatedUser' => $staff]);
+        $celebrantService = app(\App\Services\SupplierStaff\CelebrantService::class, [
+            'authenticatedUser' => $staff,
+            'addressService' => $addressService,
+            'contactNumberService' => $contactNumberService
+        ]);
+        $clientService = app(\App\Services\SupplierStaff\ClientService::class, ['authenticatedUser' => $staff]);
+        $eventClientService = app(\App\Services\SupplierStaff\EventClientService::class, ['authenticatedUser' => $staff]);
+        $eventChecklistService = app(\App\Services\SupplierStaff\EventChecklistService::class, ['authenticatedUser' => $staff]);
+        $templateChecklistGroupService = app(\App\Services\SupplierStaff\SupplierTemplateChecklistGroupService::class);
+        $eventChecklistGroupService = app(\App\Services\SupplierStaff\EventChecklistGroupService::class, [
+            'authenticatedUser' => $staff,
+            'eventChecklistService' => $eventChecklistService,
+            'templateChecklistGroupService' => $templateChecklistGroupService
+        ]);
+
+        return app(EventService::class, [
+            'authenticatedUser' => $staff,
+            'celebrantService' => $celebrantService,
+            'addressService' => $addressService,
+            'clientService' => $clientService,
+            'eventClientService' => $eventClientService,
+            'eventChecklistGroupService' => $eventChecklistGroupService
+        ]);
     }
 }

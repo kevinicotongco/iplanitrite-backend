@@ -16,13 +16,7 @@ class SupplierTemplateChecklist extends Model
     protected $keyType = 'string';
     public $incrementing = false;
 
-    protected $fillable = [
-        'supplier_template_checklist_group_id',
-        'name',
-        'description',
-        'created_by',
-        'updated_by',
-    ];
+    protected $guarded = [];
 
     public function group(): BelongsTo
     {

@@ -16,12 +16,7 @@ class SupplierRolePermission extends Model
     protected $keyType = 'string';
     public $incrementing = false;
 
-    protected $fillable = [
-        'supplier_role_id',
-        'permission',
-        'created_by',
-        'updated_by',
-    ];
+    protected $guarded = [];
 
     public function supplierRole(): BelongsTo
     {

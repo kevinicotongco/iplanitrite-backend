@@ -21,19 +21,7 @@ class Event extends Model
     protected $keyType = 'string';
     public $incrementing = false;
 
-    protected $fillable = [
-        'supplier_id',
-        'name',
-        'description',
-        'status',
-        'event_type',
-        'event_date',
-        'celebrant_one_id',
-        'celebrant_two_id',
-        'address_id',
-        'created_by',
-        'updated_by',
-    ];
+    protected $guarded = [];
 
     protected $casts = [
         'status' => EventStatusEnum::class,

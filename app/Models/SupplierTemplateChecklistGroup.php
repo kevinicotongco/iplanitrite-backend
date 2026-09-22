@@ -18,13 +18,7 @@ class SupplierTemplateChecklistGroup extends Model
     protected $keyType = 'string';
     public $incrementing = false;
 
-    protected $fillable = [
-        'supplier_id',
-        'name',
-        'event_type',
-        'created_by',
-        'updated_by',
-    ];
+    protected $guarded = [];
 
     protected $casts = [
         'event_type' => EventTypeEnum::class,

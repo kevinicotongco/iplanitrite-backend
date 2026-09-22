@@ -17,12 +17,7 @@ class SupplierRole extends Model
     protected $keyType = 'string';
     public $incrementing = false;
 
-    protected $fillable = [
-        'supplier_id',
-        'name',
-        'created_by',
-        'updated_by',
-    ];
+    protected $guarded = [];
 
     public function supplier(): BelongsTo
     {

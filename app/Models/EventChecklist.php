@@ -17,14 +17,7 @@ class EventChecklist extends Model
     protected $keyType = 'string';
     public $incrementing = false;
 
-    protected $fillable = [
-        'event_checklist_group_id',
-        'name',
-        'description',
-        'status',
-        'created_by',
-        'updated_by',
-    ];
+    protected $guarded = [];
 
     protected $casts = [
         'status' => EventChecklistStatusEnum::class,

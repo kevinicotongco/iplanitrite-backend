@@ -17,10 +17,7 @@ class ContactNumber extends Model
     public $incrementing = false;
     public $timestamps = false;
 
-    protected $fillable = [
-        'number',
-        'country_id',
-    ];
+    protected $guarded = [];
 
     public function country(): BelongsTo
     {

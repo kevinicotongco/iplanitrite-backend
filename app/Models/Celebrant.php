@@ -18,16 +18,7 @@ class Celebrant extends Model
     protected $keyType = 'string';
     public $incrementing = false;
 
-    protected $fillable = [
-        'first_name',
-        'middle_name',
-        'last_name',
-        'profile_picture',
-        'address_id',
-        'contact_number_id',
-        'created_by',
-        'updated_by',
-    ];
+    protected $guarded = [];
 
     public function profilePictureDocument(): BelongsTo
     {

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Dto\Response;
 
+use App\Data\AddressData;
 use App\Models\Address;
+use App\Models\Country;
 
 readonly class AddressResponseDto
 {
@@ -32,6 +34,23 @@ readonly class AddressResponseDto
             lat: $address->lat,
             long: $address->long,
             country: CountryResponseDto::fromModel($address->country),
+        );
+    }
+
+    public static function fromAddressData(AddressData $addressData): self
+    {
+        $country = Country::findOrFail($addressData->countryId);
+        
+        return new self(
+            id: $addressData->id,
+            line1: $addressData->line1,
+            line2: $addressData->line2,
+            city: $addressData->city,
+            state: $addressData->state,
+            zip: $addressData->zip,
+            lat: $addressData->lat,
+            long: $addressData->long,
+            country: CountryResponseDto::fromModel($country),
         );
     }
 

@@ -16,12 +16,7 @@ class EventClient extends Model
     protected $keyType = 'string';
     public $incrementing = false;
 
-    protected $fillable = [
-        'event_id',
-        'client_id',
-        'created_by',
-        'updated_by',
-    ];
+    protected $guarded = [];
 
     public function event(): BelongsTo
     {

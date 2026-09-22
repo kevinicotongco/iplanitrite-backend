@@ -15,13 +15,7 @@ class Document extends Model
     protected $keyType = 'string';
     public $incrementing = false;
 
-    protected $fillable = [
-        'name',
-        'display_name',
-        'url',
-        'size',
-        'mime_type',
-    ];
+    protected $guarded = [];
 
     protected $casts = [
         'size' => 'integer',

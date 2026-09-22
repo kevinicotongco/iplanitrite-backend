@@ -17,16 +17,7 @@ class Address extends Model
     public $incrementing = false;
     public $timestamps = false;
 
-    protected $fillable = [
-        'line1',
-        'line2',
-        'city',
-        'state',
-        'zip',
-        'lat',
-        'long',
-        'country_id',
-    ];
+    protected $guarded = [];
 
     protected $casts = [
         'lat' => 'decimal:6',

@@ -17,12 +17,7 @@ class EventGuestGroup extends Model
     protected $keyType = 'string';
     public $incrementing = false;
 
-    protected $fillable = [
-        'event_id',
-        'name',
-        'created_by',
-        'updated_by',
-    ];
+    protected $guarded = [];
 
     public function event(): BelongsTo
     {

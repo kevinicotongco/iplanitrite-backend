@@ -17,18 +17,7 @@ class EventGuest extends Model
     protected $keyType = 'string';
     public $incrementing = false;
 
-    protected $fillable = [
-        'event_guest_group_id',
-        'first_name',
-        'middle_name',
-        'last_name',
-        'profile_picture',
-        'address_id',
-        'contact_number_id',
-        'status',
-        'created_by',
-        'updated_by',
-    ];
+    protected $guarded = [];
 
     protected $casts = [
         'status' => EventGuestStatusEnum::class,

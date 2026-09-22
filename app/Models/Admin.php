@@ -17,15 +17,7 @@ class Admin extends Authenticatable
     protected $keyType = 'string';
     public $incrementing = false;
 
-    protected $fillable = [
-        'avatar',
-        'email',
-        'password',
-        'first_name',
-        'last_name',
-        'created_by',
-        'updated_by',
-    ];
+    protected $guarded = [];
 
     protected $hidden = [
         'password',

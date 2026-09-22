@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Dto\Response;
 
+use App\Data\ContactNumberData;
 use App\Models\ContactNumber;
+use App\Models\Country;
 
 readonly class ContactNumberResponseDto
 {
@@ -20,6 +22,17 @@ readonly class ContactNumberResponseDto
             id: $contactNumber->id,
             number: $contactNumber->number,
             country: CountryResponseDto::fromModel($contactNumber->country),
+        );
+    }
+
+    public static function fromContactNumberData(ContactNumberData $contactNumberData): self
+    {
+        $country = Country::findOrFail($contactNumberData->countryId);
+        
+        return new self(
+            id: $contactNumberData->id,
+            number: $contactNumberData->number,
+            country: CountryResponseDto::fromModel($country),
         );
     }
 

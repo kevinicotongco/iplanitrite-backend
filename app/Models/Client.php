@@ -19,19 +19,7 @@ class Client extends Authenticatable
     protected $keyType = 'string';
     public $incrementing = false;
 
-    protected $fillable = [
-        'supplier_id',
-        'email',
-        'password',
-        'first_name',
-        'middle_name',
-        'last_name',
-        'profile_picture',
-        'address_id',
-        'contact_number_id',
-        'created_by',
-        'updated_by',
-    ];
+    protected $guarded = [];
 
     protected $hidden = [
         'password',

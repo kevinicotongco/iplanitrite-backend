@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Dto\Response;
 
+use App\Data\CelebrantWithRelationsData;
 use App\Models\Celebrant;
 
 readonly class CelebrantResponseDto
@@ -33,6 +34,23 @@ readonly class CelebrantResponseDto
                 : null,
             contactNumber: $celebrant->contactNumber
                 ? ContactNumberResponseDto::fromModel($celebrant->contactNumber)
+                : null,
+        );
+    }
+
+    public static function fromCelebrantData(CelebrantWithRelationsData $celebrantData): self
+    {
+        return new self(
+            id: $celebrantData->id,
+            firstName: $celebrantData->firstName,
+            middleName: $celebrantData->middleName,
+            lastName: $celebrantData->lastName,
+            profilePicture: null, // Profile picture not loaded in data class
+            address: $celebrantData->address
+                ? AddressResponseDto::fromAddressData($celebrantData->address)
+                : null,
+            contactNumber: $celebrantData->contactNumber
+                ? ContactNumberResponseDto::fromContactNumberData($celebrantData->contactNumber)
                 : null,
         );
     }

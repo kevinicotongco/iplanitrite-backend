@@ -12,9 +12,12 @@ use App\Models\Admin;
 use App\Models\Client;
 use App\Models\Country;
 use App\Models\Event;
+use App\Models\EventChecklistGroup;
 use App\Models\Supplier;
 use App\Models\SupplierRole;
 use App\Models\SupplierStaff;
+use App\Models\SupplierTemplateChecklistGroup;
+use App\Models\SupplierTemplateChecklist;
 use App\Notifications\ClientWelcomeNotification;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -775,6 +778,183 @@ class SupplierEventManagementTest extends TestCase
             'id' => $event->id,
             'created_by' => $validStaffId,
             'updated_by' => $validStaffId,
+        ]);
+    }
+
+    // Checklist Template Copying Tests
+
+    public function test_creating_event_copies_template_checklists(): void
+    {
+        // Create template checklist group for Birthday events
+        $templateGroup = SupplierTemplateChecklistGroup::create([
+            'id' => Str::uuid()->toString(),
+            'supplier_id' => $this->supplier->id,
+            'name' => 'Birthday Checklist',
+            'event_type' => EventTypeEnum::Birthday,
+        ]);
+
+        // Create template checklists with different frequencies
+        $template1 = SupplierTemplateChecklist::create([
+            'id' => Str::uuid()->toString(),
+            'supplier_template_checklist_group_id' => $templateGroup->id,
+            'name' => 'Book venue',
+            'description' => 'Book the party venue',
+            'frequency_days' => -30, // 30 days before event
+        ]);
+
+        $template2 = SupplierTemplateChecklist::create([
+            'id' => Str::uuid()->toString(),
+            'supplier_template_checklist_group_id' => $templateGroup->id,
+            'name' => 'Send thank you cards',
+            'description' => 'Send thank you notes',
+            'frequency_days' => 7, // 7 days after event
+        ]);
+
+        // Create event
+        $eventData = [
+            'name' => 'Birthday Party',
+            'status' => 'Pending',
+            'eventType' => EventTypeEnum::Birthday->value,
+            'eventDate' => '2024-12-25T14:00:00Z',
+            'celebrantOne' => [
+                'firstName' => 'John',
+                'lastName' => 'Doe',
+            ],
+            'address' => [
+                'line1' => '123 Main St',
+                'city' => 'New York',
+                'state' => 'NY',
+                'zip' => '10001',
+            ],
+            'clients' => [
+                [
+                    'email' => 'client@example.com',
+                    'firstName' => 'Client',
+                    'lastName' => 'User',
+                ],
+            ],
+        ];
+
+        $response = $this->withToken($this->token)
+            ->postJson('/api/suppliers/events', $eventData);
+
+        $response->assertStatus(201);
+
+        $event = Event::where('name', 'Birthday Party')->first();
+
+        // Assert event checklist group was created
+        $this->assertDatabaseHas('event_checklist_groups', [
+            'event_id' => $event->id,
+            'name' => 'Birthday Checklist',
+            'event_type' => 'Birthday',
+        ]);
+
+        $eventGroup = EventChecklistGroup::where('event_id', $event->id)->first();
+
+        // Assert event checklists were copied
+        $this->assertDatabaseHas('event_checklists', [
+            'event_checklist_group_id' => $eventGroup->id,
+            'name' => 'Book venue',
+            'description' => 'Book the party venue',
+            'due_date' => '2024-11-25', // 30 days before Dec 25
+        ]);
+
+        $this->assertDatabaseHas('event_checklists', [
+            'event_checklist_group_id' => $eventGroup->id,
+            'name' => 'Send thank you cards',
+            'description' => 'Send thank you notes',
+            'due_date' => '2025-01-01', // 7 days after Dec 25
+        ]);
+    }
+
+    public function test_only_copies_checklists_matching_event_type(): void
+    {
+        // Create template for Birthday
+        $birthdayGroup = SupplierTemplateChecklistGroup::create([
+            'id' => Str::uuid()->toString(),
+            'supplier_id' => $this->supplier->id,
+            'name' => 'Birthday Tasks',
+            'event_type' => EventTypeEnum::Birthday,
+        ]);
+
+        SupplierTemplateChecklist::create([
+            'id' => Str::uuid()->toString(),
+            'supplier_template_checklist_group_id' => $birthdayGroup->id,
+            'name' => 'Birthday Task',
+            'frequency_days' => -7,
+        ]);
+
+        // Create template for Wedding
+        $weddingGroup = SupplierTemplateChecklistGroup::create([
+            'id' => Str::uuid()->toString(),
+            'supplier_id' => $this->supplier->id,
+            'name' => 'Wedding Tasks',
+            'event_type' => EventTypeEnum::Wedding,
+        ]);
+
+        SupplierTemplateChecklist::create([
+            'id' => Str::uuid()->toString(),
+            'supplier_template_checklist_group_id' => $weddingGroup->id,
+            'name' => 'Wedding Task',
+            'frequency_days' => -14,
+        ]);
+
+        // Create Wedding event
+        $eventData = [
+            'name' => 'Wedding Event',
+            'status' => 'Pending',
+            'eventType' => EventTypeEnum::Wedding->value,
+            'eventDate' => '2024-12-25T14:00:00Z',
+            'celebrantOne' => [
+                'firstName' => 'John',
+                'lastName' => 'Doe',
+            ],
+            'address' => [
+                'line1' => '123 Main St',
+                'city' => 'New York',
+                'state' => 'NY',
+                'zip' => '10001',
+            ],
+            'clients' => [
+                [
+                    'email' => 'client@example.com',
+                    'firstName' => 'Client',
+                    'lastName' => 'User',
+                ],
+            ],
+        ];
+
+        $response = $this->withToken($this->token)
+            ->postJson('/api/suppliers/events', $eventData);
+
+        $response->assertStatus(201);
+
+        $event = Event::where('name', 'Wedding Event')->first();
+
+        // Assert only Wedding checklist group was created
+        $this->assertDatabaseHas('event_checklist_groups', [
+            'event_id' => $event->id,
+            'name' => 'Wedding Tasks',
+            'event_type' => 'Wedding',
+        ]);
+
+        // Assert Birthday checklist group was NOT created
+        $this->assertDatabaseMissing('event_checklist_groups', [
+            'event_id' => $event->id,
+            'name' => 'Birthday Tasks',
+        ]);
+
+        $eventGroup = EventChecklistGroup::where('event_id', $event->id)->first();
+
+        // Assert Wedding task was copied
+        $this->assertDatabaseHas('event_checklists', [
+            'event_checklist_group_id' => $eventGroup->id,
+            'name' => 'Wedding Task',
+        ]);
+
+        // Assert Birthday task was NOT copied
+        $this->assertDatabaseMissing('event_checklists', [
+            'name' => 'Birthday Task',
         ]);
     }
 }
