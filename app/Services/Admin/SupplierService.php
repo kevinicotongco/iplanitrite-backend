@@ -52,7 +52,7 @@ readonly class SupplierService
         return $query->orderBy('name', 'asc')->get();
     }
 
-    public function createSupplier(CreateSupplierRequestDto $request, string $adminId): Supplier
+    public function createSupplier(CreateSupplierRequestDto $request): Supplier
     {
         $logoDocumentId = null;
         if ($request->logo) {
@@ -124,7 +124,7 @@ readonly class SupplierService
         return $supplier->load(['logoDocument', 'address.country', 'country', 'contactNumber.country']);
     }
 
-    public function updateSupplier(string $supplierId, UpdateSupplierRequestDto $request, string $adminId): Supplier
+    public function updateSupplier(string $supplierId, UpdateSupplierRequestDto $request): Supplier
     {
         $supplier = Supplier::findOrFail($supplierId);
 

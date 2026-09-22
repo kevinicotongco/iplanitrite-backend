@@ -148,9 +148,7 @@ class SupplierController extends Controller
     {
         $requestDto = CreateSupplierRequestDto::fromArray($request->validated());
 
-        $adminId = auth('admin')->id();
-
-        $supplier = DB::transaction(fn() => $this->supplierService->createSupplier($requestDto, $adminId));
+        $supplier = DB::transaction(fn() => $this->supplierService->createSupplier($requestDto));
 
         $response = SupplierResponseDto::fromModel($supplier);
 
@@ -227,7 +225,7 @@ class SupplierController extends Controller
 
         $adminId = auth('admin')->id();
 
-        $supplier = DB::transaction(fn() => $this->supplierService->updateSupplier($id, $requestDto, $adminId));
+        $supplier = DB::transaction(fn() => $this->supplierService->updateSupplier($id, $requestDto));
 
         $response = SupplierResponseDto::fromModel($supplier);
 
