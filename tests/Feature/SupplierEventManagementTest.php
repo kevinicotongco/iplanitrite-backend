@@ -4,14 +4,17 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Enums\ChecklistFrequencyTypeEnum;
 use App\Enums\EventStatusEnum;
 use App\Enums\EventTypeEnum;
+use App\Enums\FrequencyAnchorEnum;
 use App\Enums\SupplierStatusEnum;
 use App\Enums\SupplierSubscriptionTierEnum;
 use App\Models\Admin;
 use App\Models\Client;
 use App\Models\Country;
 use App\Models\Event;
+use App\Models\EventChecklist;
 use App\Models\EventChecklistGroup;
 use App\Models\Supplier;
 use App\Models\SupplierRole;
@@ -799,7 +802,9 @@ class SupplierEventManagementTest extends TestCase
             'supplier_template_checklist_group_id' => $templateGroup->id,
             'name' => 'Book venue',
             'description' => 'Book the party venue',
-            'frequency_days' => -30, // 30 days before event
+            'frequency_days' => 30,
+            'frequency_type' => ChecklistFrequencyTypeEnum::Days->value,
+            'frequency_anchor' => FrequencyAnchorEnum::BeforeEvent->value, // 30 days before event
         ]);
 
         $template2 = SupplierTemplateChecklist::create([
@@ -807,7 +812,9 @@ class SupplierEventManagementTest extends TestCase
             'supplier_template_checklist_group_id' => $templateGroup->id,
             'name' => 'Send thank you cards',
             'description' => 'Send thank you notes',
-            'frequency_days' => 7, // 7 days after event
+            'frequency_days' => 7,
+            'frequency_type' => ChecklistFrequencyTypeEnum::Days->value,
+            'frequency_anchor' => FrequencyAnchorEnum::AfterCreation->value, // 7 days after creation
         ]);
 
         // Create event
@@ -859,12 +866,16 @@ class SupplierEventManagementTest extends TestCase
             'due_date' => '2024-11-25', // 30 days before Dec 25
         ]);
 
-        $this->assertDatabaseHas('event_checklists', [
-            'event_checklist_group_id' => $eventGroup->id,
-            'name' => 'Send thank you cards',
-            'description' => 'Send thank you notes',
-            'due_date' => '2025-01-01', // 7 days after Dec 25
-        ]);
+        // For AfterCreation, due_date should be 7 days from now
+        $checklist = EventChecklist::where('event_checklist_group_id', $eventGroup->id)
+            ->where('name', 'Send thank you cards')
+            ->first();
+
+        $this->assertNotNull($checklist);
+        $this->assertEquals('Send thank you notes', $checklist->description);
+        // Check that due date is 7 days from now (compare date only, not time)
+        $expectedDueDate = now()->addDays(7)->format('Y-m-d');
+        $this->assertEquals($expectedDueDate, $checklist->due_date->format('Y-m-d'));
     }
 
     public function test_only_copies_checklists_matching_event_type(): void
@@ -956,6 +967,381 @@ class SupplierEventManagementTest extends TestCase
         $this->assertDatabaseMissing('event_checklists', [
             'name' => 'Birthday Task',
         ]);
+    }
+
+    public function test_checklist_due_date_calculated_with_days_frequency(): void
+    {
+        $eventDate = now()->addDays(30);
+
+        // Create template checklist with DAYS frequency type
+        $templateGroup = SupplierTemplateChecklistGroup::create([
+            'supplier_id' => $this->supplier->id,
+            'name' => 'Pre-Event Tasks',
+            'event_type' => EventTypeEnum::Birthday,
+            'created_by' => $this->staff->id,
+            'updated_by' => $this->staff->id,
+        ]);
+
+        SupplierTemplateChecklist::create([
+            'supplier_template_checklist_group_id' => $templateGroup->id,
+            'name' => 'Task 7 days before',
+            'description' => 'Complete 7 days before event',
+            'frequency_days' => 7,
+            'frequency_type' => ChecklistFrequencyTypeEnum::Days->value,
+            'frequency_anchor' => FrequencyAnchorEnum::BeforeEvent->value,
+            'created_by' => $this->staff->id,
+            'updated_by' => $this->staff->id,
+        ]);
+
+        $eventData = [
+            'name' => 'Birthday Party',
+            'description' => 'Test event',
+            'status' => 'Pending',
+            'eventType' => EventTypeEnum::Birthday->value,
+            'eventDate' => $eventDate->toIso8601String(),
+            'celebrantOne' => [
+                'firstName' => 'John',
+                'lastName' => 'Doe',
+            ],
+            'address' => [
+                'line1' => '123 Main St',
+                'city' => 'City',
+                'state' => 'State',
+                'zip' => '12345',
+            ],
+            'clients' => [
+                [
+                    'email' => 'client@example.com',
+                    'firstName' => 'Client',
+                    'lastName' => 'User',
+                ],
+            ],
+        ];
+
+        $response = $this->withToken($this->token)
+            ->postJson('/api/suppliers/events', $eventData);
+
+        $response->assertStatus(201);
+
+        $event = Event::where('name', 'Birthday Party')->first();
+        $eventGroup = EventChecklistGroup::where('event_id', $event->id)->first();
+        $checklist = EventChecklist::where('event_checklist_group_id', $eventGroup->id)->first();
+
+        $expectedDueDate = $eventDate->copy()->subDays(7)->format('Y-m-d');
+        $this->assertEquals($expectedDueDate, $checklist->due_date->format('Y-m-d'));
+    }
+
+    public function test_checklist_due_date_calculated_with_weeks_frequency(): void
+    {
+        $eventDate = now()->addDays(30);
+
+        // Create template checklist with WEEKS frequency type
+        $templateGroup = SupplierTemplateChecklistGroup::create([
+            'supplier_id' => $this->supplier->id,
+            'name' => 'Pre-Event Tasks',
+            'event_type' => EventTypeEnum::Birthday,
+            'created_by' => $this->staff->id,
+            'updated_by' => $this->staff->id,
+        ]);
+
+        SupplierTemplateChecklist::create([
+            'supplier_template_checklist_group_id' => $templateGroup->id,
+            'name' => 'Task 2 weeks before',
+            'description' => 'Complete 2 weeks before event',
+            'frequency_days' => 2,
+            'frequency_type' => ChecklistFrequencyTypeEnum::Weeks->value,
+            'frequency_anchor' => FrequencyAnchorEnum::BeforeEvent->value,
+            'created_by' => $this->staff->id,
+            'updated_by' => $this->staff->id,
+        ]);
+
+        $eventData = [
+            'name' => 'Birthday Party',
+            'description' => 'Test event',
+            'status' => 'Pending',
+            'eventType' => EventTypeEnum::Birthday->value,
+            'eventDate' => $eventDate->toIso8601String(),
+            'celebrantOne' => [
+                'firstName' => 'John',
+                'lastName' => 'Doe',
+            ],
+            'address' => [
+                'line1' => '123 Main St',
+                'city' => 'City',
+                'state' => 'State',
+                'zip' => '12345',
+            ],
+            'clients' => [
+                [
+                    'email' => 'client@example.com',
+                    'firstName' => 'Client',
+                    'lastName' => 'User',
+                ],
+            ],
+        ];
+
+        $response = $this->withToken($this->token)
+            ->postJson('/api/suppliers/events', $eventData);
+
+        $response->assertStatus(201);
+
+        $event = Event::where('name', 'Birthday Party')->first();
+        $eventGroup = EventChecklistGroup::where('event_id', $event->id)->first();
+        $checklist = EventChecklist::where('event_checklist_group_id', $eventGroup->id)->first();
+
+        $expectedDueDate = $eventDate->copy()->subWeeks(2)->format('Y-m-d');
+        $this->assertEquals($expectedDueDate, $checklist->due_date->format('Y-m-d'));
+    }
+
+    public function test_checklist_due_date_calculated_with_months_frequency(): void
+    {
+        $eventDate = now()->addMonths(6);
+
+        // Create template checklist with MONTHS frequency type
+        $templateGroup = SupplierTemplateChecklistGroup::create([
+            'supplier_id' => $this->supplier->id,
+            'name' => 'Pre-Event Tasks',
+            'event_type' => EventTypeEnum::Birthday,
+            'created_by' => $this->staff->id,
+            'updated_by' => $this->staff->id,
+        ]);
+
+        SupplierTemplateChecklist::create([
+            'supplier_template_checklist_group_id' => $templateGroup->id,
+            'name' => 'Task 3 months before',
+            'description' => 'Complete 3 months before event',
+            'frequency_days' => 3,
+            'frequency_type' => ChecklistFrequencyTypeEnum::Months->value,
+            'frequency_anchor' => FrequencyAnchorEnum::BeforeEvent->value,
+            'created_by' => $this->staff->id,
+            'updated_by' => $this->staff->id,
+        ]);
+
+        $eventData = [
+            'name' => 'Birthday Party',
+            'description' => 'Test event',
+            'status' => 'Pending',
+            'eventType' => EventTypeEnum::Birthday->value,
+            'eventDate' => $eventDate->toIso8601String(),
+            'celebrantOne' => [
+                'firstName' => 'John',
+                'lastName' => 'Doe',
+            ],
+            'address' => [
+                'line1' => '123 Main St',
+                'city' => 'City',
+                'state' => 'State',
+                'zip' => '12345',
+            ],
+            'clients' => [
+                [
+                    'email' => 'client@example.com',
+                    'firstName' => 'Client',
+                    'lastName' => 'User',
+                ],
+            ],
+        ];
+
+        $response = $this->withToken($this->token)
+            ->postJson('/api/suppliers/events', $eventData);
+
+        $response->assertStatus(201);
+
+        $event = Event::where('name', 'Birthday Party')->first();
+        $eventGroup = EventChecklistGroup::where('event_id', $event->id)->first();
+        $checklist = EventChecklist::where('event_checklist_group_id', $eventGroup->id)->first();
+
+        $expectedDueDate = $eventDate->copy()->subMonths(3)->format('Y-m-d');
+        $this->assertEquals($expectedDueDate, $checklist->due_date->format('Y-m-d'));
+    }
+
+    public function test_checklist_due_date_calculated_with_after_creation_days(): void
+    {
+        $eventDate = now()->addDays(30);
+
+        // Create template checklist with AfterCreation anchor
+        $templateGroup = SupplierTemplateChecklistGroup::create([
+            'supplier_id' => $this->supplier->id,
+            'name' => 'Post-Creation Tasks',
+            'event_type' => EventTypeEnum::Birthday,
+            'created_by' => $this->staff->id,
+            'updated_by' => $this->staff->id,
+        ]);
+
+        SupplierTemplateChecklist::create([
+            'supplier_template_checklist_group_id' => $templateGroup->id,
+            'name' => 'Task 5 days after creation',
+            'description' => 'Complete 5 days after checklist creation',
+            'frequency_days' => 5,
+            'frequency_type' => ChecklistFrequencyTypeEnum::Days->value,
+            'frequency_anchor' => FrequencyAnchorEnum::AfterCreation->value,
+            'created_by' => $this->staff->id,
+            'updated_by' => $this->staff->id,
+        ]);
+
+        $eventData = [
+            'name' => 'Birthday Party',
+            'description' => 'Test event',
+            'status' => 'Pending',
+            'eventType' => EventTypeEnum::Birthday->value,
+            'eventDate' => $eventDate->toIso8601String(),
+            'celebrantOne' => [
+                'firstName' => 'John',
+                'lastName' => 'Doe',
+            ],
+            'address' => [
+                'line1' => '123 Main St',
+                'city' => 'City',
+                'state' => 'State',
+                'zip' => '12345',
+            ],
+            'clients' => [
+                [
+                    'email' => 'client@example.com',
+                    'firstName' => 'Client',
+                    'lastName' => 'User',
+                ],
+            ],
+        ];
+
+        $createdAt = now();
+        $response = $this->withToken($this->token)
+            ->postJson('/api/suppliers/events', $eventData);
+
+        $response->assertStatus(201);
+
+        $event = Event::where('name', 'Birthday Party')->first();
+        $eventGroup = EventChecklistGroup::where('event_id', $event->id)->first();
+        $checklist = EventChecklist::where('event_checklist_group_id', $eventGroup->id)->first();
+
+        $expectedDueDate = $createdAt->copy()->addDays(5)->format('Y-m-d');
+        $this->assertEquals($expectedDueDate, $checklist->due_date->format('Y-m-d'));
+    }
+
+    public function test_checklist_due_date_calculated_with_after_creation_weeks(): void
+    {
+        $eventDate = now()->addDays(30);
+
+        // Create template checklist with AfterCreation anchor
+        $templateGroup = SupplierTemplateChecklistGroup::create([
+            'supplier_id' => $this->supplier->id,
+            'name' => 'Post-Creation Tasks',
+            'event_type' => EventTypeEnum::Birthday,
+            'created_by' => $this->staff->id,
+            'updated_by' => $this->staff->id,
+        ]);
+
+        SupplierTemplateChecklist::create([
+            'supplier_template_checklist_group_id' => $templateGroup->id,
+            'name' => 'Task 2 weeks after creation',
+            'description' => 'Complete 2 weeks after checklist creation',
+            'frequency_days' => 2,
+            'frequency_type' => ChecklistFrequencyTypeEnum::Weeks->value,
+            'frequency_anchor' => FrequencyAnchorEnum::AfterCreation->value,
+            'created_by' => $this->staff->id,
+            'updated_by' => $this->staff->id,
+        ]);
+
+        $eventData = [
+            'name' => 'Birthday Party',
+            'description' => 'Test event',
+            'status' => 'Pending',
+            'eventType' => EventTypeEnum::Birthday->value,
+            'eventDate' => $eventDate->toIso8601String(),
+            'celebrantOne' => [
+                'firstName' => 'John',
+                'lastName' => 'Doe',
+            ],
+            'address' => [
+                'line1' => '123 Main St',
+                'city' => 'City',
+                'state' => 'State',
+                'zip' => '12345',
+            ],
+            'clients' => [
+                [
+                    'email' => 'client@example.com',
+                    'firstName' => 'Client',
+                    'lastName' => 'User',
+                ],
+            ],
+        ];
+
+        $createdAt = now();
+        $response = $this->withToken($this->token)
+            ->postJson('/api/suppliers/events', $eventData);
+
+        $response->assertStatus(201);
+
+        $event = Event::where('name', 'Birthday Party')->first();
+        $eventGroup = EventChecklistGroup::where('event_id', $event->id)->first();
+        $checklist = EventChecklist::where('event_checklist_group_id', $eventGroup->id)->first();
+
+        $expectedDueDate = $createdAt->copy()->addWeeks(2)->format('Y-m-d');
+        $this->assertEquals($expectedDueDate, $checklist->due_date->format('Y-m-d'));
+    }
+
+    public function test_checklist_due_date_calculated_with_after_creation_months(): void
+    {
+        $eventDate = now()->addMonths(6);
+
+        // Create template checklist with AfterCreation anchor
+        $templateGroup = SupplierTemplateChecklistGroup::create([
+            'supplier_id' => $this->supplier->id,
+            'name' => 'Post-Creation Tasks',
+            'event_type' => EventTypeEnum::Birthday,
+            'created_by' => $this->staff->id,
+            'updated_by' => $this->staff->id,
+        ]);
+
+        SupplierTemplateChecklist::create([
+            'supplier_template_checklist_group_id' => $templateGroup->id,
+            'name' => 'Task 1 month after creation',
+            'description' => 'Complete 1 month after checklist creation',
+            'frequency_days' => 1,
+            'frequency_type' => ChecklistFrequencyTypeEnum::Months->value,
+            'frequency_anchor' => FrequencyAnchorEnum::AfterCreation->value,
+            'created_by' => $this->staff->id,
+            'updated_by' => $this->staff->id,
+        ]);
+
+        $eventData = [
+            'name' => 'Birthday Party',
+            'description' => 'Test event',
+            'status' => 'Pending',
+            'eventType' => EventTypeEnum::Birthday->value,
+            'eventDate' => $eventDate->toIso8601String(),
+            'celebrantOne' => [
+                'firstName' => 'John',
+                'lastName' => 'Doe',
+            ],
+            'address' => [
+                'line1' => '123 Main St',
+                'city' => 'City',
+                'state' => 'State',
+                'zip' => '12345',
+            ],
+            'clients' => [
+                [
+                    'email' => 'client@example.com',
+                    'firstName' => 'Client',
+                    'lastName' => 'User',
+                ],
+            ],
+        ];
+
+        $createdAt = now();
+        $response = $this->withToken($this->token)
+            ->postJson('/api/suppliers/events', $eventData);
+
+        $response->assertStatus(201);
+
+        $event = Event::where('name', 'Birthday Party')->first();
+        $eventGroup = EventChecklistGroup::where('event_id', $event->id)->first();
+        $checklist = EventChecklist::where('event_checklist_group_id', $eventGroup->id)->first();
+
+        $expectedDueDate = $createdAt->copy()->addMonths(1)->format('Y-m-d');
+        $this->assertEquals($expectedDueDate, $checklist->due_date->format('Y-m-d'));
     }
 }
 

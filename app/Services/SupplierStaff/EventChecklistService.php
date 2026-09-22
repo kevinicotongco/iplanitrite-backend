@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Services\SupplierStaff;
 
 use App\Data\SupplierTemplateChecklistData;
+use App\Enums\ChecklistFrequencyTypeEnum;
+use App\Enums\FrequencyAnchorEnum;
 use App\Models\EventChecklist;
 use App\Models\EventChecklistGroup;
 use App\Models\SupplierStaff;
@@ -30,7 +32,12 @@ readonly class EventChecklistService
         SupplierTemplateChecklistData $templateChecklistData,
         string|Carbon $eventDate
     ): EventChecklist {
-        $dueDate = $this->calculateDueDate($eventDate, $templateChecklistData->frequencyDays);
+        $dueDate = $this->calculateDueDate(
+            $eventDate,
+            $templateChecklistData->frequencyDays,
+            $templateChecklistData->frequencyType,
+            $templateChecklistData->frequencyAnchor
+        );
 
         return $this->eventChecklistModel::create([
             'event_checklist_group_id' => $eventGroup->id,
@@ -43,20 +50,39 @@ readonly class EventChecklistService
     }
 
     /**
-     * Calculate checklist due date based on event date and frequency
+     * Calculate checklist due date based on event date, frequency, and anchor
      *
      * @param string|Carbon $eventDate
-     * @param int $frequencyDays
+     * @param int $frequency
+     * @param ChecklistFrequencyTypeEnum $frequencyType
+     * @param FrequencyAnchorEnum $frequencyAnchor
      * @return Carbon|null
      */
-    private function calculateDueDate(string|Carbon $eventDate, int $frequencyDays): ?Carbon
-    {
+    private function calculateDueDate(
+        string|Carbon $eventDate,
+        int $frequency,
+        ChecklistFrequencyTypeEnum $frequencyType,
+        FrequencyAnchorEnum $frequencyAnchor
+    ): ?Carbon {
         try {
             $eventDateTime = $eventDate instanceof Carbon ? $eventDate : Carbon::parse($eventDate);
 
-            // Add or subtract days based on frequency
-            // Positive = after event, Negative = before event
-            return $eventDateTime->addDays($frequencyDays);
+            if ($frequencyAnchor === FrequencyAnchorEnum::AfterCreation) {
+                // AfterCreation: due_date = now() + frequency
+                $baseDate = now();
+                return match ($frequencyType) {
+                    ChecklistFrequencyTypeEnum::Days => $baseDate->addDays($frequency),
+                    ChecklistFrequencyTypeEnum::Weeks => $baseDate->addWeeks($frequency),
+                    ChecklistFrequencyTypeEnum::Months => $baseDate->addMonths($frequency),
+                };
+            } else {
+                // BeforeEvent: due_date = event_date - frequency
+                return match ($frequencyType) {
+                    ChecklistFrequencyTypeEnum::Days => $eventDateTime->subDays($frequency),
+                    ChecklistFrequencyTypeEnum::Weeks => $eventDateTime->subWeeks($frequency),
+                    ChecklistFrequencyTypeEnum::Months => $eventDateTime->subMonths($frequency),
+                };
+            }
         } catch (\Exception $e) {
             return null;
         }

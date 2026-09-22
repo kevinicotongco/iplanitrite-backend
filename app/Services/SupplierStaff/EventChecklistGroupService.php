@@ -29,7 +29,7 @@ readonly class EventChecklistGroupService
         // Get template checklist groups for this supplier and event type
         $templateGroups = $this->templateChecklistGroupService->getTemplateGroupsWithChecklists(
             $supplierId,
-            $event->event_type->value
+            $event->event_type
         );
 
         foreach ($templateGroups as $templateGroup) {

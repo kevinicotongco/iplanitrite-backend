@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\SupplierStaff;
 
 use App\Data\SupplierTemplateChecklistGroupWithChecklistsData;
+use App\Enums\EventTypeEnum;
 use App\Models\SupplierTemplateChecklistGroup;
 use Illuminate\Support\Collection;
 
@@ -18,13 +19,13 @@ readonly class SupplierTemplateChecklistGroupService
      * Get template checklist groups with their checklists for a specific supplier and event type
      *
      * @param string $supplierId
-     * @param string $eventType
+     * @param EventTypeEnum $eventType
      * @return Collection<SupplierTemplateChecklistGroupWithChecklistsData>
      */
-    public function getTemplateGroupsWithChecklists(string $supplierId, string $eventType): Collection
+    public function getTemplateGroupsWithChecklists(string $supplierId, EventTypeEnum $eventType): Collection
     {
         $templateGroups = $this->model::where('supplier_id', $supplierId)
-            ->where('event_type', $eventType)
+            ->where('event_type', $eventType->value)
             ->with('checklists')
             ->get();
 

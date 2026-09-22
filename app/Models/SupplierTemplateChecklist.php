@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\ChecklistFrequencyTypeEnum;
+use App\Enums\FrequencyAnchorEnum;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -17,6 +19,11 @@ class SupplierTemplateChecklist extends Model
     public $incrementing = false;
 
     protected $guarded = [];
+
+    protected $casts = [
+        'frequency_type' => ChecklistFrequencyTypeEnum::class,
+        'frequency_anchor' => FrequencyAnchorEnum::class,
+    ];
 
     public function group(): BelongsTo
     {

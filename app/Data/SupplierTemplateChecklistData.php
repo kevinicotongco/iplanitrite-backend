@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Data;
 
+use App\Enums\ChecklistFrequencyTypeEnum;
+use App\Enums\FrequencyAnchorEnum;
 use App\Models\SupplierTemplateChecklist;
 
 final readonly class SupplierTemplateChecklistData
@@ -13,6 +15,8 @@ final readonly class SupplierTemplateChecklistData
         public string $name,
         public ?string $description,
         public int $frequencyDays,
+        public ChecklistFrequencyTypeEnum $frequencyType,
+        public FrequencyAnchorEnum $frequencyAnchor,
     ) {}
 
     public static function fromModel(SupplierTemplateChecklist $checklist): self
@@ -22,6 +26,8 @@ final readonly class SupplierTemplateChecklistData
             name: $checklist->name,
             description: $checklist->description,
             frequencyDays: $checklist->frequency_days,
+            frequencyType: $checklist->frequency_type,
+            frequencyAnchor: $checklist->frequency_anchor,
         );
     }
 }

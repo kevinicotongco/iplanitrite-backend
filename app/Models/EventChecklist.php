@@ -21,6 +21,7 @@ class EventChecklist extends Model
 
     protected $casts = [
         'status' => EventChecklistStatusEnum::class,
+        'due_date' => 'datetime',
     ];
 
     public function group(): BelongsTo
