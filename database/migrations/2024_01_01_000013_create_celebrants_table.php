@@ -21,11 +21,11 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            $table->foreign('profile_picture')->references('id')->on('documents')->onDelete('set null');
-            $table->foreign('address_id')->references('id')->on('addresses')->onDelete('set null');
-            $table->foreign('contact_number_id')->references('id')->on('contact_numbers')->onDelete('set null');
-            $table->foreign('created_by')->references('id')->on('admins')->onDelete('set null');
-            $table->foreign('updated_by')->references('id')->on('admins')->onDelete('set null');
+            $table->foreign('profile_picture')->references('id')->on('documents');
+            $table->foreign('address_id')->references('id')->on('addresses');
+            $table->foreign('contact_number_id')->references('id')->on('contact_numbers');
+            $table->foreign('created_by')->references('id')->on('supplier_staff');
+            $table->foreign('updated_by')->references('id')->on('supplier_staff');
         });
     }
 

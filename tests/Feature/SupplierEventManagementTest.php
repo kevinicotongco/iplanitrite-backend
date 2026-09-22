@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Enums\EventStatusEnum;
+use App\Enums\EventTypeEnum;
 use App\Enums\SupplierStatusEnum;
 use App\Enums\SupplierSubscriptionTierEnum;
 use App\Models\Client;
@@ -163,6 +164,7 @@ class SupplierEventManagementTest extends TestCase
             'name' => 'John\'s Birthday',
             'description' => 'A fun birthday party',
             'status' => 'Pending',
+            'eventType' => 'Birthday',
             'eventDate' => '2024-12-25T14:00:00Z',
             'celebrantOne' => [
                 'firstName' => 'John',
@@ -225,6 +227,7 @@ class SupplierEventManagementTest extends TestCase
             'name' => 'John and Jane Wedding',
             'description' => 'A beautiful wedding',
             'status' => 'Pending',
+            'eventType' => 'Wedding',
             'eventDate' => '2024-12-25T14:00:00Z',
             'celebrantOne' => [
                 'firstName' => 'John',
@@ -266,6 +269,7 @@ class SupplierEventManagementTest extends TestCase
         $eventData = [
             'name' => 'Test Event',
             'status' => 'Pending',
+            'eventType' => 'Debut',
             'eventDate' => '2024-12-25T14:00:00Z',
             'celebrantOne' => [
                 'firstName' => 'John',
@@ -314,6 +318,7 @@ class SupplierEventManagementTest extends TestCase
         $eventData = [
             'name' => 'Test Event',
             'status' => 'Pending',
+            'eventType' => 'Baptism',
             'eventDate' => '2024-12-25T14:00:00Z',
             'celebrantOne' => [
                 'firstName' => 'John',
@@ -347,6 +352,7 @@ class SupplierEventManagementTest extends TestCase
     {
         $eventData = [
             'status' => 'Pending',
+            'eventType' => 'Wedding',
             'eventDate' => '2024-12-25T14:00:00Z',
             'celebrantOne' => [
                 'firstName' => 'John',
@@ -379,6 +385,7 @@ class SupplierEventManagementTest extends TestCase
         $eventData = [
             'name' => 'Test Event',
             'status' => 'Pending',
+            'eventType' => 'Wedding',
             'eventDate' => '2024-12-25T14:00:00Z',
             'celebrantOne' => [
                 'firstName' => 'John',
@@ -405,6 +412,7 @@ class SupplierEventManagementTest extends TestCase
         $eventData = [
             'name' => 'Test Event',
             'status' => 'Pending',
+            'eventType' => 'Wedding',
             'eventDate' => '2024-12-25T14:00:00Z',
             'celebrantOne' => [
                 'firstName' => 'John',
@@ -444,6 +452,7 @@ class SupplierEventManagementTest extends TestCase
             'name' => 'Updated Name',
             'description' => 'Updated description',
             'status' => 'Ongoing',
+            'eventType' => 'Birthday',
             'eventDate' => '2024-12-31T18:00:00Z',
             'celebrantOne' => [
                 'firstName' => 'Updated',
@@ -481,6 +490,7 @@ class SupplierEventManagementTest extends TestCase
         $updateData = [
             'name' => $event->name,
             'status' => $event->status->value,
+            'eventType' => $event->event_type->value,
             'eventDate' => $event->event_date->toIso8601String(),
             'celebrantOne' => [
                 'firstName' => $event->celebrantOne->first_name,
@@ -526,6 +536,7 @@ class SupplierEventManagementTest extends TestCase
         $updateData = [
             'name' => 'Updated Name',
             'status' => 'Ongoing',
+            'eventType' => 'Wedding',
             'eventDate' => '2024-12-31T18:00:00Z',
             'celebrantOne' => [
                 'firstName' => 'Updated',
@@ -554,6 +565,7 @@ class SupplierEventManagementTest extends TestCase
         $updateData = [
             'name' => 'Updated Name',
             'status' => 'Ongoing',
+            'eventType' => 'Wedding',
             'eventDate' => '2024-12-31T18:00:00Z',
             'celebrantOne' => [
                 'firstName' => 'Updated',

@@ -79,7 +79,11 @@ Models are responsible for:
 
 Use repositories only when they provide a clear benefit or when the specification requires them. Do not introduce unnecessary repository layers.
 
-#### 4. DTO Rules
+#### 4. Model Rules
+
+NEVER IMPLEMENT FILLABLE ON ALL MODELS.
+
+#### 5. DTO Rules
 
 All request bodies must be converted into Request DTOs.
 
@@ -102,7 +106,7 @@ Response DTOs must expose the API contract, not raw database column names.
 
 Use the naming and casing conventions specified in the project.
 
-#### 5. Database Transactions
+#### 6. Database Transactions
 
 All mutating routes (`POST`, `PUT`, `PATCH`, `DELETE`) must execute inside a database transaction.
 
@@ -120,7 +124,7 @@ If the project's architecture requires explicit transaction handling at the cont
 
 Do not catch exceptions merely to hide them. Allow appropriate exceptions to propagate through the application's exception-handling system.
 
-#### 6. Authentication and Authorization
+#### 7. Authentication and Authorization
 
 There are three user types:
 
@@ -142,7 +146,7 @@ Each route group must only be accessible to its intended user type:
 
 Do not allow one user type to access another user type's protected routes.
 
-#### 7. CORS
+#### 8. CORS
 
 Configure CORS for the API.
 
@@ -150,7 +154,7 @@ The web application must be able to access the API.
 
 Do not disable CORS globally as a shortcut. Use the appropriate allowed origins, methods, headers, and credentials configuration for the project.
 
-#### 8. Routes, Tests, and Documentation
+#### 9. Routes, Tests, and Documentation
 
 Every route must have:
 
@@ -175,7 +179,7 @@ Tests must cover at minimum:
 
 Do not create placeholder tests that merely assert `true`.
 
-#### 9. Naming and Code Quality
+#### 10. Naming and Code Quality
 
 * Functions and variables must use camelCase.
 * All function arguments must have explicit types.
@@ -193,7 +197,7 @@ Do not create placeholder tests that merely assert `true`.
 * Make sure to make classes readonly if they are not meant to be extended.
 * Make sure to properly import classes ex: \Exception > use Exception;
 
-#### 10. API Response Consistency
+#### 11. API Response Consistency
 
 Always follow the API Response format specified in the prompt.
 
@@ -203,7 +207,7 @@ Do not expose passwords, password hashes, or other sensitive fields in API respo
 
 If a DTO specification includes a sensitive field, identify the issue and propose a safe correction before implementing it.
 
-#### 11. Implementation Workflow
+#### 12. Implementation Workflow
 
 You MUST follow this two-phase workflow strictly:
 
@@ -232,7 +236,7 @@ PHASE 2: CODE & SYSTEM IMPLEMENTATION
 * Run formatting, static analysis, and tests via Sail.
 * Report what was changed, what was tested, and any remaining issues.
 
-#### 12. Important Implementation Behavior
+#### 13. Important Implementation Behavior
 
 When I ask you to implement a route, implement the complete vertical slice:
 
@@ -254,7 +258,7 @@ Do not implement only the controller or route unless I explicitly ask for that.
 
 When I ask you to fix a bug, inspect the existing implementation first and make the smallest correct change that preserves the architecture.
 
-#### 13. Running the Project
+#### 14. Running the Project
 
 * Use bash vendor/bin/sail to Access artisan or docker exec 
 * Before doing a change please confirm with me that it is correct

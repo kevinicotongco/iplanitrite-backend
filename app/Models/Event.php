@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\EventStatusEnum;
+use App\Enums\EventTypeEnum;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -25,6 +26,7 @@ class Event extends Model
         'name',
         'description',
         'status',
+        'event_type',
         'event_date',
         'celebrant_one_id',
         'celebrant_two_id',
@@ -35,6 +37,7 @@ class Event extends Model
 
     protected $casts = [
         'status' => EventStatusEnum::class,
+        'event_type' => EventTypeEnum::class,
         'event_date' => 'datetime',
     ];
 

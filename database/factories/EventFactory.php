@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Database\Factories;
 
 use App\Enums\EventStatusEnum;
+use App\Enums\EventTypeEnum;
 use App\Models\Address;
 use App\Models\Celebrant;
 use App\Models\Event;
@@ -28,6 +29,7 @@ class EventFactory extends Factory
             'name' => fake()->sentence(3),
             'description' => fake()->paragraph(),
             'status' => fake()->randomElement(EventStatusEnum::cases()),
+            'event_type' => fake()->randomElement(EventTypeEnum::cases()),
             'event_date' => fake()->dateTimeBetween('+1 month', '+1 year'),
             'celebrant_one_id' => Celebrant::factory(),
             'celebrant_two_id' => null,

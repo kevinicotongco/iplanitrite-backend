@@ -14,6 +14,7 @@ readonly class EventResponseDto
         public string $name,
         public ?string $description,
         public string $status,
+        public string $eventType,
         public string $eventDate,
         public ?CelebrantResponseDto $celebrantOne,
         public ?CelebrantResponseDto $celebrantTwo,
@@ -28,6 +29,7 @@ readonly class EventResponseDto
             name: $event->name,
             description: $event->description,
             status: $event->status->value,
+            eventType: $event->event_type->value,
             eventDate: $event->event_date->toIso8601String(),
             celebrantOne: $event->celebrantOne
                 ? CelebrantResponseDto::fromModel($event->celebrantOne)
@@ -52,6 +54,7 @@ readonly class EventResponseDto
             'name' => $this->name,
             'description' => $this->description,
             'status' => $this->status,
+            'eventType' => $this->eventType,
             'eventDate' => $this->eventDate,
             'celebrantOne' => $this->celebrantOne?->toArray(),
             'celebrantTwo' => $this->celebrantTwo?->toArray(),

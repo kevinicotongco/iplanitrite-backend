@@ -15,6 +15,7 @@ return new class extends Migration
             $table->string('name');
             $table->text('description')->nullable();
             $table->string('status')->default(EventStatusEnum::Pending->value);
+            $table->string('event_type');
             $table->dateTime('event_date');
             $table->uuid('celebrant_one_id');
             $table->uuid('celebrant_two_id')->nullable();
@@ -24,12 +25,12 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            $table->foreign('supplier_id')->references('id')->on('suppliers')->onDelete('cascade');
-            $table->foreign('celebrant_one_id')->references('id')->on('celebrants')->onDelete('restrict');
-            $table->foreign('celebrant_two_id')->references('id')->on('celebrants')->onDelete('restrict');
-            $table->foreign('address_id')->references('id')->on('addresses')->onDelete('set null');
-            $table->foreign('created_by')->references('id')->on('admins')->onDelete('set null');
-            $table->foreign('updated_by')->references('id')->on('admins')->onDelete('set null');
+            $table->foreign('supplier_id')->references('id')->on('suppliers');
+            $table->foreign('celebrant_one_id')->references('id')->on('celebrants');
+            $table->foreign('celebrant_two_id')->references('id')->on('celebrants');
+            $table->foreign('address_id')->references('id')->on('addresses');
+            $table->foreign('created_by')->references('id')->on('supplier_staff');
+            $table->foreign('updated_by')->references('id')->on('supplier_staff');
         });
     }
 

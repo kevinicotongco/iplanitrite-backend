@@ -28,8 +28,8 @@ return new class extends Migration
             $table->foreign('profile_picture')->references('id')->on('documents')->onDelete('set null');
             $table->foreign('address_id')->references('id')->on('addresses')->onDelete('set null');
             $table->foreign('contact_number_id')->references('id')->on('contact_numbers')->onDelete('set null');
-            $table->foreign('created_by')->references('id')->on('admins')->onDelete('set null');
-            $table->foreign('updated_by')->references('id')->on('admins')->onDelete('set null');
+            $table->foreign('created_by')->references('id')->on('clients')->onDelete('set null');
+            $table->foreign('updated_by')->references('id')->on('clients')->onDelete('set null');
         });
     }
 

@@ -12,14 +12,15 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->uuid('event_id');
             $table->string('name');
+            $table->string('event_type');
             $table->uuid('created_by')->nullable();
             $table->uuid('updated_by')->nullable();
             $table->timestamps();
             $table->softDeletes();
 
             $table->foreign('event_id')->references('id')->on('events')->onDelete('cascade');
-            $table->foreign('created_by')->references('id')->on('admins')->onDelete('set null');
-            $table->foreign('updated_by')->references('id')->on('admins')->onDelete('set null');
+            $table->foreign('created_by')->references('id')->on('clients')->onDelete('set null');
+            $table->foreign('updated_by')->references('id')->on('clients')->onDelete('set null');
         });
     }
 

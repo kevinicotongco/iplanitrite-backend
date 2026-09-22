@@ -17,9 +17,9 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            $table->foreign('supplier_id')->references('id')->on('suppliers')->onDelete('cascade');
-            $table->foreign('created_by')->references('id')->on('admins')->onDelete('set null');
-            $table->foreign('updated_by')->references('id')->on('admins')->onDelete('set null');
+            $table->foreign('supplier_id')->references('id')->on('suppliers');
+            $table->foreign('created_by')->references('id')->on('supplier_staff');
+            $table->foreign('updated_by')->references('id')->on('supplier_staff');
         });
     }
 

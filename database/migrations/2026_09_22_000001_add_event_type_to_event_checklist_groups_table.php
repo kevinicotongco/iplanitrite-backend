@@ -6,23 +6,17 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::table('celebrants', function (Blueprint $table) {
-            //
+        Schema::table('event_checklist_groups', function (Blueprint $table) {
+            $table->string('event_type')->after('name');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::table('celebrants', function (Blueprint $table) {
-            //
+        Schema::table('event_checklist_groups', function (Blueprint $table) {
+            $table->dropColumn('event_type');
         });
     }
 };

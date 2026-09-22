@@ -12,6 +12,7 @@ readonly class SupplierTemplateChecklistGroupResponseDto
         public string $id,
         public string $supplierId,
         public string $name,
+        public string $eventType,
     ) {}
 
     public static function fromModel(SupplierTemplateChecklistGroup $supplierTemplateChecklistGroup): self
@@ -20,6 +21,7 @@ readonly class SupplierTemplateChecklistGroupResponseDto
             id: $supplierTemplateChecklistGroup->id,
             supplierId: $supplierTemplateChecklistGroup->supplier_id,
             name: $supplierTemplateChecklistGroup->name,
+            eventType: $supplierTemplateChecklistGroup->event_type->value,
         );
     }
 
@@ -32,6 +34,7 @@ readonly class SupplierTemplateChecklistGroupResponseDto
             'id' => $this->id,
             'supplierId' => $this->supplierId,
             'name' => $this->name,
+            'eventType' => $this->eventType,
         ];
     }
 }

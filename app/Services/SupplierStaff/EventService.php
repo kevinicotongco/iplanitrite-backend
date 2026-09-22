@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\SupplierStaff;
 
+use App\Dto\Request\AddressRequestDto;
 use App\Dto\Request\CelebrantRequestDto;
 use App\Dto\Request\ClientCreateRequestDto;
 use App\Dto\Request\CreateEventRequestDto;
@@ -82,6 +83,7 @@ readonly class EventService
             'name' => $dto->name,
             'description' => $dto->description,
             'status' => $dto->status,
+            'event_type' => $dto->eventType,
             'event_date' => $dto->eventDate,
             'celebrant_one_id' => $celebrantOne->id,
             'celebrant_two_id' => $celebrantTwo?->id,
@@ -137,6 +139,7 @@ readonly class EventService
             'name' => $dto->name,
             'description' => $dto->description,
             'status' => $dto->status,
+            'event_type' => $dto->eventType,
             'event_date' => $dto->eventDate,
             'updated_by' => $updatedBy,
         ]);
@@ -226,11 +229,11 @@ readonly class EventService
     /**
      * Create an address
      *
-     * @param \App\Dto\Request\AddressRequestDto $dto
+     * @param AddressRequestDto $dto
      * @param string $countryId
      * @return Address
      */
-    private function createAddress(\App\Dto\Request\AddressRequestDto $dto, string $countryId): Address
+    private function createAddress(AddressRequestDto $dto, string $countryId): Address
     {
         return $this->addressModel::create([
             'line1' => $dto->line1,
@@ -248,11 +251,11 @@ readonly class EventService
      * Update an address
      *
      * @param Address $address
-     * @param \App\Dto\Request\AddressRequestDto $dto
+     * @param AddressRequestDto $dto
      * @param string $countryId
      * @return void
      */
-    private function updateAddress(Address $address, \App\Dto\Request\AddressRequestDto $dto, string $countryId): void
+    private function updateAddress(Address $address, AddressRequestDto $dto, string $countryId): void
     {
         $address->update([
             'line1' => $dto->line1,

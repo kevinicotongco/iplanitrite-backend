@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\EventTypeEnum;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -20,8 +21,13 @@ class SupplierTemplateChecklistGroup extends Model
     protected $fillable = [
         'supplier_id',
         'name',
+        'event_type',
         'created_by',
         'updated_by',
+    ];
+
+    protected $casts = [
+        'event_type' => EventTypeEnum::class,
     ];
 
     public function supplier(): BelongsTo

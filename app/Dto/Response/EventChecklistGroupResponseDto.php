@@ -12,6 +12,7 @@ readonly class EventChecklistGroupResponseDto
         public string $id,
         public string $eventId,
         public string $name,
+        public string $eventType,
     ) {}
 
     public static function fromModel(EventChecklistGroup $eventChecklistGroup): self
@@ -20,6 +21,7 @@ readonly class EventChecklistGroupResponseDto
             id: $eventChecklistGroup->id,
             eventId: $eventChecklistGroup->event_id,
             name: $eventChecklistGroup->name,
+            eventType: $eventChecklistGroup->event_type->value,
         );
     }
 
@@ -32,6 +34,7 @@ readonly class EventChecklistGroupResponseDto
             'id' => $this->id,
             'eventId' => $this->eventId,
             'name' => $this->name,
+            'eventType' => $this->eventType,
         ];
     }
 }

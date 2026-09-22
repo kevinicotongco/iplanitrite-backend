@@ -94,15 +94,15 @@ readonly class SupplierService
             'contact_number_id' => $contactNumberId,
             'subscription_tier' => $request->subscriptionTier,
             'timezone' => $request->timezone,
-            'created_by' => $adminId,
-            'updated_by' => $adminId,
+            'created_by' => null,
+            'updated_by' => null,
         ]);
 
         $administratorRole = SupplierRole::create([
             'supplier_id' => $supplier->id,
             'name' => 'Administrator',
-            'created_by' => $adminId,
-            'updated_by' => $adminId,
+            'created_by' => null,
+            'updated_by' => null,
         ]);
 
         $temporaryPassword = Str::random(15);
@@ -115,8 +115,8 @@ readonly class SupplierService
             'first_name' => $request->supplierStaff->firstName,
             'middle_name' => $request->supplierStaff->middleName,
             'last_name' => $request->supplierStaff->lastName,
-            'created_by' => $adminId,
-            'updated_by' => $adminId,
+            'created_by' => null,
+            'updated_by' => null,
         ]);
 
         $supplierStaff->notify(new SupplierStaffWelcomeNotification($temporaryPassword, $supplier->name));
@@ -134,7 +134,7 @@ readonly class SupplierService
             'subscription_tier' => $request->subscriptionTier,
             'country_id' => $request->countryId,
             'timezone' => $request->timezone,
-            'updated_by' => $adminId,
+            'updated_by' => null,
         ];
 
         if ($request->logo) {
