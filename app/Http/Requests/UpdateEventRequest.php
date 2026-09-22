@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests;
 
 use App\Enums\EventStatusEnum;
+use App\Enums\EventTypeEnum;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -24,6 +25,7 @@ class UpdateEventRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'status' => ['required', 'string', Rule::in(array_column(EventStatusEnum::cases(), 'value'))],
+            'eventType' => ['required', 'string', Rule::in(array_column(EventTypeEnum::cases(), 'value'))],
             'eventDate' => ['required', 'date'],
 
             'celebrantOne' => ['required', 'array'],

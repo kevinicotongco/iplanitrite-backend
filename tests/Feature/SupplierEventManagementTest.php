@@ -8,6 +8,7 @@ use App\Enums\EventStatusEnum;
 use App\Enums\EventTypeEnum;
 use App\Enums\SupplierStatusEnum;
 use App\Enums\SupplierSubscriptionTierEnum;
+use App\Models\Admin;
 use App\Models\Client;
 use App\Models\Country;
 use App\Models\Event;
@@ -15,6 +16,7 @@ use App\Models\Supplier;
 use App\Models\SupplierRole;
 use App\Models\SupplierStaff;
 use App\Notifications\ClientWelcomeNotification;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
@@ -200,6 +202,7 @@ class SupplierEventManagementTest extends TestCase
                 'name',
                 'description',
                 'status',
+                'eventType',
                 'eventDate',
                 'celebrantOne',
                 'address',
@@ -208,16 +211,23 @@ class SupplierEventManagementTest extends TestCase
         $this->assertDatabaseHas('events', [
             'name' => 'John\'s Birthday',
             'supplier_id' => $this->supplier->id,
+            'event_type' => 'Birthday',
+            'created_by' => $this->staff->id,
+            'updated_by' => $this->staff->id,
         ]);
 
         $this->assertDatabaseHas('celebrants', [
             'first_name' => 'John',
             'last_name' => 'Doe',
+            'created_by' => $this->staff->id,
+            'updated_by' => $this->staff->id,
         ]);
 
         $this->assertDatabaseHas('clients', [
             'email' => 'client1@example.com',
             'supplier_id' => $this->supplier->id,
+            'created_by' => $this->staff->id,
+            'updated_by' => $this->staff->id,
         ]);
     }
 
@@ -471,12 +481,15 @@ class SupplierEventManagementTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonPath('name', 'Updated Name')
-            ->assertJsonPath('status', 'Ongoing');
+            ->assertJsonPath('status', 'Ongoing')
+            ->assertJsonPath('eventType', 'Birthday');
 
         $this->assertDatabaseHas('events', [
             'id' => $event->id,
             'name' => 'Updated Name',
             'status' => EventStatusEnum::Ongoing,
+            'event_type' => 'Birthday',
+            'updated_by' => $this->staff->id,
         ]);
     }
 
@@ -583,4 +596,193 @@ class SupplierEventManagementTest extends TestCase
 
         $response->assertStatus(401);
     }
+
+    // Timestamp and Editor Tracking Tests
+
+    public function test_event_creation_tracks_created_at_and_updated_at(): void
+    {
+        $eventData = [
+            'name' => 'Test Event',
+            'status' => 'Pending',
+            'eventType' => 'Wedding',
+            'eventDate' => '2024-12-25T14:00:00Z',
+            'celebrantOne' => [
+                'firstName' => 'John',
+                'lastName' => 'Doe',
+            ],
+            'address' => [
+                'line1' => '123 Main St',
+                'city' => 'New York',
+                'state' => 'NY',
+                'zip' => '10001',
+            ],
+            'clients' => [
+                [
+                    'email' => 'client@example.com',
+                    'firstName' => 'Client',
+                    'lastName' => 'User',
+                ],
+            ],
+        ];
+
+        $beforeCreate = now()->subSecond(); // Subtract a second to avoid precision issues
+
+        $response = $this->withToken($this->token)
+            ->postJson('/api/suppliers/events', $eventData);
+
+        $response->assertStatus(201);
+
+        $event = Event::where('name', 'Test Event')->first();
+        $this->assertNotNull($event);
+        $this->assertNotNull($event->created_at);
+        $this->assertNotNull($event->updated_at);
+        $this->assertTrue($event->created_at->greaterThanOrEqualTo($beforeCreate));
+        $this->assertEquals($event->created_at->format('Y-m-d H:i:s'), $event->updated_at->format('Y-m-d H:i:s'));
+    }
+
+    public function test_event_update_changes_updated_at(): void
+    {
+        $event = Event::factory()->create([
+            'supplier_id' => $this->supplier->id,
+        ]);
+
+        $originalUpdatedAt = $event->updated_at;
+
+        // Wait a moment to ensure timestamp difference
+        sleep(1);
+
+        $updateData = [
+            'name' => 'Updated Event Name',
+            'status' => $event->status->value,
+            'eventType' => $event->event_type->value,
+            'eventDate' => $event->event_date->toIso8601String(),
+            'celebrantOne' => [
+                'firstName' => $event->celebrantOne->first_name,
+                'lastName' => $event->celebrantOne->last_name,
+            ],
+            'address' => [
+                'line1' => $event->address->line1,
+                'city' => $event->address->city,
+                'state' => $event->address->state,
+                'zip' => $event->address->zip,
+            ],
+        ];
+
+        $response = $this->withToken($this->token)
+            ->putJson("/api/suppliers/events/{$event->id}", $updateData);
+
+        $response->assertStatus(200);
+
+        $event->refresh();
+        $this->assertTrue($event->updated_at->greaterThan($originalUpdatedAt));
+    }
+
+    public function test_soft_delete_sets_deleted_at_timestamp(): void
+    {
+        $event = Event::factory()->create([
+            'supplier_id' => $this->supplier->id,
+        ]);
+
+        $beforeDelete = now()->subSecond(); // Subtract a second to avoid precision issues
+
+        $event->delete();
+
+        $event->refresh();
+        $this->assertNotNull($event->deleted_at);
+        $this->assertTrue($event->deleted_at->greaterThanOrEqualTo($beforeDelete));
+    }
+
+    // ID Isolation and Foreign Key Constraint Tests
+
+    public function test_cannot_create_event_with_admin_id_as_created_by(): void
+    {
+        // Create an Admin user
+        $admin = Admin::create([
+            'id' => Str::uuid()->toString(),
+            'email' => 'admin@test.com',
+            'password' => Hash::make('password123'),
+            'first_name' => 'Admin',
+            'last_name' => 'User',
+        ]);
+
+        $failed = false;
+
+        try {
+            // Attempt to create an event with admin ID in created_by field
+            // This should fail because created_by has a foreign key to supplier_staff table
+            Event::create([
+                'id' => Str::uuid()->toString(),
+                'supplier_id' => $this->supplier->id,
+                'name' => 'Test Event',
+                'status' => EventStatusEnum::Pending,
+                'event_type' => EventTypeEnum::Wedding,
+                'event_date' => now()->addDays(30),
+                'celebrant_one_id' => Str::uuid()->toString(),
+                'created_by' => $admin->id, // This should fail - Admin ID in supplier_staff foreign key
+                'updated_by' => $this->staff->id,
+            ]);
+        } catch (QueryException $e) {
+            // Foreign key constraint should prevent this
+            $this->assertStringContainsString('foreign key constraint', $e->getMessage());
+            $failed = true;
+        }
+
+        $this->assertTrue($failed, 'Expected foreign key constraint violation when using admin ID in created_by field');
+    }
+
+    public function test_cannot_create_event_with_client_id_as_created_by(): void
+    {
+        // Create a Client user
+        $client = Client::create([
+            'id' => Str::uuid()->toString(),
+            'supplier_id' => $this->supplier->id,
+            'email' => 'client@test.com',
+            'password' => Hash::make('password123'),
+            'first_name' => 'Client',
+            'last_name' => 'User',
+        ]);
+
+        $failed = false;
+
+        try {
+            // Attempt to create an event with client ID in created_by field
+            // This should fail because created_by has a foreign key to supplier_staff table
+            Event::create([
+                'id' => Str::uuid()->toString(),
+                'supplier_id' => $this->supplier->id,
+                'name' => 'Test Event',
+                'status' => EventStatusEnum::Pending,
+                'event_type' => EventTypeEnum::Birthday,
+                'event_date' => now()->addDays(30),
+                'celebrant_one_id' => Str::uuid()->toString(),
+                'created_by' => $client->id, // This should fail - Client ID in supplier_staff foreign key
+                'updated_by' => $this->staff->id,
+            ]);
+        } catch (QueryException $e) {
+            // Foreign key constraint should prevent this
+            $this->assertStringContainsString('foreign key constraint', $e->getMessage());
+            $failed = true;
+        }
+
+        $this->assertTrue($failed, 'Expected foreign key constraint violation when using client ID in created_by field');
+    }
+
+    public function test_event_created_by_must_reference_valid_supplier_staff(): void
+    {
+        // This test verifies that only valid supplier_staff IDs can be used
+        $validStaffId = $this->staff->id;
+
+        $event = Event::factory()->create([
+            'supplier_id' => $this->supplier->id,
+            'created_by' => $validStaffId,
+            'updated_by' => $validStaffId,
+        ]);
+
+        $this->assertDatabaseHas('events', [
+            'id' => $event->id,
+            'created_by' => $validStaffId,
+            'updated_by' => $validStaffId,
+        ]);
+    }
 }
+

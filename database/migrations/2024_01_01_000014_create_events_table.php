@@ -29,8 +29,7 @@ return new class extends Migration
             $table->foreign('celebrant_one_id')->references('id')->on('celebrants');
             $table->foreign('celebrant_two_id')->references('id')->on('celebrants');
             $table->foreign('address_id')->references('id')->on('addresses');
-            $table->foreign('created_by')->references('id')->on('supplier_staff');
-            $table->foreign('updated_by')->references('id')->on('supplier_staff');
+            // Foreign keys to supplier_staff deferred to separate migration
         });
     }
 

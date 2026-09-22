@@ -30,8 +30,7 @@ return new class extends Migration
             $table->foreign('profile_picture')->references('id')->on('documents');
             $table->foreign('address_id')->references('id')->on('addresses');
             $table->foreign('contact_number_id')->references('id')->on('contact_numbers');
-            $table->foreign('created_by')->references('id')->on('supplier_staff');
-            $table->foreign('updated_by')->references('id')->on('supplier_staff');
+            // Self-referencing foreign keys deferred to separate migration
         });
     }
 

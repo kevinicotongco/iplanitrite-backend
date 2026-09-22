@@ -18,8 +18,7 @@ return new class extends Migration
             $table->softDeletes();
 
             $table->foreign('supplier_role_id')->references('id')->on('supplier_roles');
-            $table->foreign('created_by')->references('id')->on('supplier_staff');
-            $table->foreign('updated_by')->references('id')->on('supplier_staff');
+            // Foreign keys to supplier_staff deferred to separate migration
         });
     }
 
