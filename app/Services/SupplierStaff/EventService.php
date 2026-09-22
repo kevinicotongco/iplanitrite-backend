@@ -139,7 +139,6 @@ readonly class EventService
             'name' => $dto->name,
             'description' => $dto->description,
             'status' => $dto->status,
-            'event_type' => $dto->eventType,
             'event_date' => $dto->eventDate,
             'updated_by' => $updatedBy,
         ]);
