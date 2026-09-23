@@ -4,6 +4,8 @@ use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\SupplierController;
 use App\Http\Controllers\Client\ClientUserController;
 use App\Http\Controllers\SupplierStaff\EventController;
+use App\Http\Controllers\SupplierStaff\SupplierStaffController;
+use App\Http\Controllers\SupplierStaff\SupplierStaffRoleController;
 use App\Http\Controllers\SupplierStaff\SupplierStaffUserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -30,7 +32,7 @@ Route::post('/admin/login', [AdminUserController::class, 'login'])
     ->name('admin.login');
 
 // Supplier Staff Login
-Route::post('/supplier_staff/login', [SupplierStaffUserController::class, 'login'])
+Route::post('/supplier-staff/login', [SupplierStaffUserController::class, 'login'])
     ->name('supplier_staff.login');
 
 // Client Login
@@ -70,7 +72,8 @@ Route::middleware('auth:admin')->prefix('admin')->group(function () {
 |--------------------------------------------------------------------------
 */
 
-Route::middleware('auth:supplier_staff')->prefix('supplier_staff')->group(function () {
+Route::middleware('auth:supplier_staff')->prefix('supplier-staff')->group(function () {
+    // Profile Management
     Route::get('/profile', [SupplierStaffUserController::class, 'profile'])
         ->name('supplier_staff.profile');
 
@@ -79,6 +82,32 @@ Route::middleware('auth:supplier_staff')->prefix('supplier_staff')->group(functi
 
     Route::put('/password', [SupplierStaffUserController::class, 'changePassword'])
         ->name('supplier_staff.change_password');
+
+    // Role Management
+    Route::get('/roles', [SupplierStaffRoleController::class, 'index'])
+        ->name('supplier_staff.roles.index');
+
+    Route::post('/roles', [SupplierStaffRoleController::class, 'store'])
+        ->name('supplier_staff.roles.store');
+
+    Route::put('/roles/{id}', [SupplierStaffRoleController::class, 'update'])
+        ->name('supplier_staff.roles.update');
+
+    Route::delete('/roles/{id}', [SupplierStaffRoleController::class, 'destroy'])
+        ->name('supplier_staff.roles.destroy');
+
+    // Staff Management
+    Route::get('/staff', [SupplierStaffController::class, 'index'])
+        ->name('supplier_staff.staff.index');
+
+    Route::post('/staff', [SupplierStaffController::class, 'store'])
+        ->name('supplier_staff.staff.store');
+
+    Route::put('/staff/{id}', [SupplierStaffController::class, 'update'])
+        ->name('supplier_staff.staff.update');
+
+    Route::delete('/staff/{id}', [SupplierStaffController::class, 'destroy'])
+        ->name('supplier_staff.staff.destroy');
 });
 
 /*

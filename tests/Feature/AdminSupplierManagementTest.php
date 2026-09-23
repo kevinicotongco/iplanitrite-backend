@@ -68,8 +68,8 @@ class AdminSupplierManagementTest extends TestCase
             'country_id' => $this->country->id,
             'subscription_tier' => SupplierSubscriptionTierEnum::Free,
             'timezone' => 'America/New_York',
-            'created_by' => $this->admin->id,
-            'updated_by' => $this->admin->id,
+            'created_by' => null,
+            'updated_by' => null,
         ]);
 
         $response = $this->withToken($this->token)
@@ -101,8 +101,8 @@ class AdminSupplierManagementTest extends TestCase
             'country_id' => $this->country->id,
             'subscription_tier' => SupplierSubscriptionTierEnum::Free,
             'timezone' => 'America/New_York',
-            'created_by' => $this->admin->id,
-            'updated_by' => $this->admin->id,
+            'created_by' => null,
+            'updated_by' => null,
         ]);
 
         Supplier::create([
@@ -112,8 +112,8 @@ class AdminSupplierManagementTest extends TestCase
             'country_id' => $this->country->id,
             'subscription_tier' => SupplierSubscriptionTierEnum::Free,
             'timezone' => 'America/New_York',
-            'created_by' => $this->admin->id,
-            'updated_by' => $this->admin->id,
+            'created_by' => null,
+            'updated_by' => null,
         ]);
 
         $response = $this->withToken($this->token)
@@ -135,8 +135,8 @@ class AdminSupplierManagementTest extends TestCase
             'country_id' => $this->country->id,
             'subscription_tier' => SupplierSubscriptionTierEnum::Free,
             'timezone' => 'America/New_York',
-            'created_by' => $this->admin->id,
-            'updated_by' => $this->admin->id,
+            'created_by' => null,
+            'updated_by' => null,
         ]);
 
         Supplier::create([
@@ -146,8 +146,8 @@ class AdminSupplierManagementTest extends TestCase
             'country_id' => $this->country->id,
             'subscription_tier' => SupplierSubscriptionTierEnum::Free,
             'timezone' => 'America/New_York',
-            'created_by' => $this->admin->id,
-            'updated_by' => $this->admin->id,
+            'created_by' => null,
+            'updated_by' => null,
         ]);
 
         $response = $this->withToken($this->token)
@@ -169,8 +169,8 @@ class AdminSupplierManagementTest extends TestCase
             'country_id' => $this->country->id,
             'subscription_tier' => SupplierSubscriptionTierEnum::Free,
             'timezone' => 'America/New_York',
-            'created_by' => $this->admin->id,
-            'updated_by' => $this->admin->id,
+            'created_by' => null,
+            'updated_by' => null,
         ]);
 
         Supplier::create([
@@ -180,8 +180,8 @@ class AdminSupplierManagementTest extends TestCase
             'country_id' => $this->country->id,
             'subscription_tier' => SupplierSubscriptionTierEnum::Free,
             'timezone' => 'America/New_York',
-            'created_by' => $this->admin->id,
-            'updated_by' => $this->admin->id,
+            'created_by' => null,
+            'updated_by' => null,
         ]);
 
         $response = $this->withToken($this->token)
@@ -203,8 +203,8 @@ class AdminSupplierManagementTest extends TestCase
             'country_id' => $this->country->id,
             'subscription_tier' => SupplierSubscriptionTierEnum::Free,
             'timezone' => 'America/New_York',
-            'created_by' => $this->admin->id,
-            'updated_by' => $this->admin->id,
+            'created_by' => null,
+            'updated_by' => null,
         ]);
 
         Supplier::create([
@@ -214,8 +214,8 @@ class AdminSupplierManagementTest extends TestCase
             'country_id' => $this->country->id,
             'subscription_tier' => SupplierSubscriptionTierEnum::Premium,
             'timezone' => 'America/New_York',
-            'created_by' => $this->admin->id,
-            'updated_by' => $this->admin->id,
+            'created_by' => null,
+            'updated_by' => null,
         ]);
 
         $response = $this->withToken($this->token)
@@ -250,8 +250,8 @@ class AdminSupplierManagementTest extends TestCase
             'country_id' => $this->country->id,
             'subscription_tier' => SupplierSubscriptionTierEnum::Free,
             'timezone' => 'America/New_York',
-            'created_by' => $this->admin->id,
-            'updated_by' => $this->admin->id,
+            'created_by' => null,
+            'updated_by' => null,
         ]);
 
         Supplier::create([
@@ -261,8 +261,8 @@ class AdminSupplierManagementTest extends TestCase
             'country_id' => $otherCountry->id,
             'subscription_tier' => SupplierSubscriptionTierEnum::Free,
             'timezone' => 'America/Toronto',
-            'created_by' => $this->admin->id,
-            'updated_by' => $this->admin->id,
+            'created_by' => null,
+            'updated_by' => null,
         ]);
 
         $response = $this->withToken($this->token)
@@ -462,8 +462,8 @@ class AdminSupplierManagementTest extends TestCase
             'country_id' => $this->country->id,
             'subscription_tier' => SupplierSubscriptionTierEnum::Free,
             'timezone' => 'America/New_York',
-            'created_by' => $this->admin->id,
-            'updated_by' => $this->admin->id,
+            'created_by' => null,
+            'updated_by' => null,
         ]);
 
         $response = $this->withToken($this->token)
@@ -493,8 +493,8 @@ class AdminSupplierManagementTest extends TestCase
             'country_id' => $this->country->id,
             'subscription_tier' => SupplierSubscriptionTierEnum::Free,
             'timezone' => 'America/New_York',
-            'created_by' => $this->admin->id,
-            'updated_by' => $this->admin->id,
+            'created_by' => null,
+            'updated_by' => null,
         ]);
 
         $response = $this->withToken($this->token)
@@ -528,8 +528,8 @@ class AdminSupplierManagementTest extends TestCase
             'country_id' => $this->country->id,
             'subscription_tier' => SupplierSubscriptionTierEnum::Free,
             'timezone' => 'America/New_York',
-            'created_by' => $this->admin->id,
-            'updated_by' => $this->admin->id,
+            'created_by' => null,
+            'updated_by' => null,
         ]);
 
         $response = $this->withToken($this->token)
@@ -568,8 +568,8 @@ class AdminSupplierManagementTest extends TestCase
             'country_id' => $this->country->id,
             'subscription_tier' => SupplierSubscriptionTierEnum::Free,
             'timezone' => 'America/New_York',
-            'created_by' => $this->admin->id,
-            'updated_by' => $this->admin->id,
+            'created_by' => null,
+            'updated_by' => null,
         ]);
 
         $response = $this->putJson('/api/admin/suppliers/' . $supplier->id, [

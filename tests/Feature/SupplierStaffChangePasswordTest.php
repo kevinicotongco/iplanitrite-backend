@@ -55,7 +55,7 @@ class SupplierStaffChangePasswordTest extends TestCase
     public function test_supplier_staff_can_change_password(): void
     {
         $response = $this->actingAs($this->supplierStaff, 'supplier_staff')
-            ->putJson('/api/supplier_staff/password', [
+            ->putJson('/api/supplier-staff/password', [
                 'currentPassword' => 'password123',
                 'newPassword' => 'newpassword123',
                 'newPasswordConfirmation' => 'newpassword123',
@@ -70,7 +70,7 @@ class SupplierStaffChangePasswordTest extends TestCase
     public function test_supplier_staff_change_password_validates_current_password(): void
     {
         $response = $this->actingAs($this->supplierStaff, 'supplier_staff')
-            ->putJson('/api/supplier_staff/password', [
+            ->putJson('/api/supplier-staff/password', [
                 'currentPassword' => 'wrongpassword',
                 'newPassword' => 'newpassword123',
                 'newPasswordConfirmation' => 'newpassword123',
@@ -83,7 +83,7 @@ class SupplierStaffChangePasswordTest extends TestCase
     public function test_supplier_staff_change_password_validates_new_password_confirmation(): void
     {
         $response = $this->actingAs($this->supplierStaff, 'supplier_staff')
-            ->putJson('/api/supplier_staff/password', [
+            ->putJson('/api/supplier-staff/password', [
                 'currentPassword' => 'password123',
                 'newPassword' => 'newpassword123',
                 'newPasswordConfirmation' => 'differentpassword',
@@ -96,7 +96,7 @@ class SupplierStaffChangePasswordTest extends TestCase
     public function test_supplier_staff_change_password_validates_minimum_length(): void
     {
         $response = $this->actingAs($this->supplierStaff, 'supplier_staff')
-            ->putJson('/api/supplier_staff/password', [
+            ->putJson('/api/supplier-staff/password', [
                 'currentPassword' => 'password123',
                 'newPassword' => 'short',
                 'newPasswordConfirmation' => 'short',

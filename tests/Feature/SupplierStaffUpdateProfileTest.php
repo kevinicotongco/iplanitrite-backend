@@ -55,7 +55,7 @@ class SupplierStaffUpdateProfileTest extends TestCase
     public function test_supplier_staff_can_update_profile(): void
     {
         $response = $this->actingAs($this->supplierStaff, 'supplier_staff')
-            ->putJson('/api/supplier_staff/profile', [
+            ->putJson('/api/supplier-staff/profile', [
                 'firstName' => 'Updated',
                 'middleName' => 'Middle',
                 'lastName' => 'Name',
@@ -91,7 +91,7 @@ class SupplierStaffUpdateProfileTest extends TestCase
     public function test_supplier_staff_update_validates_required_fields(): void
     {
         $response = $this->actingAs($this->supplierStaff, 'supplier_staff')
-            ->putJson('/api/supplier_staff/profile', []);
+            ->putJson('/api/supplier-staff/profile', []);
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['firstName', 'lastName']);
@@ -99,7 +99,7 @@ class SupplierStaffUpdateProfileTest extends TestCase
 
     public function test_unauthenticated_user_cannot_update_supplier_staff_profile(): void
     {
-        $response = $this->putJson('/api/supplier_staff/profile', [
+        $response = $this->putJson('/api/supplier-staff/profile', [
             'firstName' => 'Updated',
             'lastName' => 'Name',
         ]);

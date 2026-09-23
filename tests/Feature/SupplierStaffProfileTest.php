@@ -77,7 +77,7 @@ class SupplierStaffProfileTest extends TestCase
     public function test_supplier_staff_can_view_profile(): void
     {
         $response = $this->actingAs($this->supplierStaff, 'supplier_staff')
-            ->getJson('/api/supplier_staff/profile');
+            ->getJson('/api/supplier-staff/profile');
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -102,7 +102,7 @@ class SupplierStaffProfileTest extends TestCase
 
     public function test_unauthenticated_user_cannot_view_supplier_staff_profile(): void
     {
-        $response = $this->getJson('/api/supplier_staff/profile');
+        $response = $this->getJson('/api/supplier-staff/profile');
 
         $response->assertStatus(401);
     }
@@ -110,7 +110,7 @@ class SupplierStaffProfileTest extends TestCase
     public function test_admin_cannot_view_supplier_staff_profile(): void
     {
         $response = $this->actingAs($this->admin, 'admin')
-            ->getJson('/api/supplier_staff/profile');
+            ->getJson('/api/supplier-staff/profile');
 
         $response->assertStatus(401);
     }
@@ -118,7 +118,7 @@ class SupplierStaffProfileTest extends TestCase
     public function test_client_cannot_view_supplier_staff_profile(): void
     {
         $response = $this->actingAs($this->client, 'client')
-            ->getJson('/api/supplier_staff/profile');
+            ->getJson('/api/supplier-staff/profile');
 
         $response->assertStatus(401);
     }

@@ -54,7 +54,7 @@ class SupplierStaffLoginTest extends TestCase
 
     public function test_supplier_staff_can_login_with_valid_credentials(): void
     {
-        $response = $this->postJson('/api/supplier_staff/login', [
+        $response = $this->postJson('/api/supplier-staff/login', [
             'email' => 'staff@test.com',
             'password' => 'password123',
         ]);
@@ -79,7 +79,7 @@ class SupplierStaffLoginTest extends TestCase
 
     public function test_supplier_staff_cannot_login_with_invalid_email(): void
     {
-        $response = $this->postJson('/api/supplier_staff/login', [
+        $response = $this->postJson('/api/supplier-staff/login', [
             'email' => 'wrong@test.com',
             'password' => 'password123',
         ]);
@@ -89,7 +89,7 @@ class SupplierStaffLoginTest extends TestCase
 
     public function test_supplier_staff_cannot_login_with_invalid_password(): void
     {
-        $response = $this->postJson('/api/supplier_staff/login', [
+        $response = $this->postJson('/api/supplier-staff/login', [
             'email' => 'staff@test.com',
             'password' => 'wrongpassword',
         ]);
@@ -99,7 +99,7 @@ class SupplierStaffLoginTest extends TestCase
 
     public function test_login_validates_email_format(): void
     {
-        $response = $this->postJson('/api/supplier_staff/login', [
+        $response = $this->postJson('/api/supplier-staff/login', [
             'email' => 'not-an-email',
             'password' => 'password123',
         ]);
@@ -110,7 +110,7 @@ class SupplierStaffLoginTest extends TestCase
 
     public function test_login_validates_required_fields(): void
     {
-        $response = $this->postJson('/api/supplier_staff/login', []);
+        $response = $this->postJson('/api/supplier-staff/login', []);
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['email', 'password']);
