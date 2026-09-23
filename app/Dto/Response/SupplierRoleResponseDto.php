@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Dto\Response;
 
+use App\Data\SupplierRoleData;
 use App\Models\SupplierRole;
 
 readonly class SupplierRoleResponseDto
@@ -26,6 +27,17 @@ readonly class SupplierRoleResponseDto
         return new self(
             id: $role->id,
             name: $role->name,
+            permissions: $permissions,
+        );
+    }
+
+    public static function fromData(SupplierRoleData $data): self
+    {
+        $permissions = array_map(fn($perm) => $perm->value, $data->permissions);
+
+        return new self(
+            id: $data->id,
+            name: $data->name,
             permissions: $permissions,
         );
     }

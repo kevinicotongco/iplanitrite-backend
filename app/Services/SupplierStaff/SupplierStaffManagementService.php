@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\SupplierStaff;
 
+use App\Data\SupplierStaffData;
 use App\Dto\Request\ManageSupplierStaffRequestDto;
 use App\Models\SupplierStaff;
 use Illuminate\Support\Collection;
@@ -22,13 +23,15 @@ readonly class SupplierStaffManagementService
      * Get all staff for a supplier
      *
      * @param string $supplierId
-     * @return Collection<SupplierStaff>
+     * @return Collection<SupplierStaffData>
      */
     public function getStaff(string $supplierId): Collection
     {
-        return SupplierStaff::where('supplier_id', $supplierId)
+        $staff = SupplierStaff::where('supplier_id', $supplierId)
             ->with(['address', 'contactNumber', 'profilePictureDocument'])
             ->get();
+
+        return $staff->map(fn($s) => SupplierStaffData::fromModel($s));
     }
 
     /**
@@ -57,7 +60,7 @@ readonly class SupplierStaffManagementService
         // Generate a random default password
         $defaultPassword = Str::random(16);
 
-        SupplierStaff::create([
+        $staff = SupplierStaff::create([
             'id' => Str::uuid()->toString(),
             'supplier_id' => $supplierId,
             'supplier_role_id' => $dto->role,

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\SupplierStaff;
 
+use App\Data\SupplierRoleData;
 use App\Dto\Request\SupplierRoleRequestDto;
 use App\Models\SupplierRole;
 use App\Models\SupplierRolePermission;
@@ -21,13 +22,15 @@ readonly class SupplierRoleService
      * Get all roles for a supplier
      *
      * @param string $supplierId
-     * @return Collection<SupplierRole>
+     * @return Collection<SupplierRoleData>
      */
     public function getRoles(string $supplierId): Collection
     {
-        return SupplierRole::where('supplier_id', $supplierId)
+        $roles = SupplierRole::where('supplier_id', $supplierId)
             ->with('permissions')
             ->get();
+
+        return $roles->map(fn($role) => SupplierRoleData::fromModel($role));
     }
 
     /**

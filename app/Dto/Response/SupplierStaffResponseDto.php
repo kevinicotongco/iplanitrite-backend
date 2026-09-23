@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Dto\Response;
 
+use App\Data\SupplierStaffData;
 use App\Models\SupplierStaff;
 
 readonly class SupplierStaffResponseDto
@@ -39,6 +40,28 @@ readonly class SupplierStaffResponseDto
                 : null,
             contactNumber: $supplierStaff->contactNumber
                 ? ContactNumberResponseDto::fromModel($supplierStaff->contactNumber)
+                : null,
+        );
+    }
+
+    public static function fromData(SupplierStaffData $data): self
+    {
+        return new self(
+            id: $data->id,
+            supplierId: $data->supplierId,
+            supplierRoleId: $data->supplierRoleId,
+            email: $data->email,
+            firstName: $data->firstName,
+            middleName: $data->middleName,
+            lastName: $data->lastName,
+            profilePicture: $data->profilePictureDocument
+                ? DocumentResponseDto::fromModel($data->profilePictureDocument)
+                : null,
+            address: $data->address
+                ? AddressResponseDto::fromModel($data->address)
+                : null,
+            contactNumber: $data->contactNumber
+                ? ContactNumberResponseDto::fromModel($data->contactNumber)
                 : null,
         );
     }

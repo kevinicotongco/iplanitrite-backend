@@ -28,7 +28,7 @@ class SupplierStaffRoleController extends Controller
         $service = app(SupplierRoleService::class, ['authenticatedUser' => $staff]);
         $roles = $service->getRoles($supplierId);
 
-        $response = $roles->map(fn($role) => SupplierRoleResponseDto::fromModel($role)->toArray());
+        $response = $roles->map(fn($role) => SupplierRoleResponseDto::fromData($role)->toArray());
 
         return response()->json($response, 200);
     }

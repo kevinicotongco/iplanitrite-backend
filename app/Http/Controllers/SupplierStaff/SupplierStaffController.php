@@ -30,7 +30,7 @@ class SupplierStaffController extends Controller
         $service = $this->createService($staff);
         $staffList = $service->getStaff($supplierId);
 
-        $response = $staffList->map(fn($s) => SupplierStaffResponseDto::fromModel($s)->toArray());
+        $response = $staffList->map(fn($s) => SupplierStaffResponseDto::fromData($s)->toArray());
 
         return response()->json($response, 200);
     }
