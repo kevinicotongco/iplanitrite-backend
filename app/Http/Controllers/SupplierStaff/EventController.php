@@ -206,13 +206,11 @@ class EventController extends Controller
         // Create service instances with authenticated user
         $service = $this->createEventService($staff);
 
-        $eventData = DB::transaction(function () use ($service, $supplierId, $countryId, $dto) {
-            return $service->createEvent($supplierId, $countryId, $dto);
+        DB::transaction(function () use ($service, $supplierId, $countryId, $dto) {
+            $service->createEvent($supplierId, $countryId, $dto);
         });
 
-        $responseDto = EventResponseDto::fromEventData($eventData);
-
-        return response()->json($responseDto->toArray(), 201);
+        return response()->json(null, 201);
     }
 
     /**
@@ -272,13 +270,11 @@ class EventController extends Controller
         // Create service instances with authenticated user
         $service = $this->createEventService($staff);
 
-        $eventData = DB::transaction(function () use ($service, $id, $supplierId, $countryId, $dto) {
-            return $service->updateEvent($id, $supplierId, $countryId, $dto);
+        DB::transaction(function () use ($service, $id, $supplierId, $countryId, $dto) {
+            $service->updateEvent($id, $supplierId, $countryId, $dto);
         });
 
-        $responseDto = EventResponseDto::fromEventData($eventData);
-
-        return response()->json($responseDto->toArray(), 200);
+        return response()->json(null, 200);
     }
 
     /**
@@ -302,14 +298,18 @@ class EventController extends Controller
             'eventChecklistService' => $eventChecklistService,
             'templateChecklistGroupService' => $templateChecklistGroupService
         ]);
+        $eventSegmentService = app(\App\Services\SupplierStaff\EventSegmentService::class, [
+            'authenticatedUser' => $staff,
+            'addressService' => $addressService
+        ]);
 
         return app(EventService::class, [
             'authenticatedUser' => $staff,
             'celebrantService' => $celebrantService,
-            'addressService' => $addressService,
             'clientService' => $clientService,
             'eventClientService' => $eventClientService,
-            'eventChecklistGroupService' => $eventChecklistGroupService
+            'eventChecklistGroupService' => $eventChecklistGroupService,
+            'eventSegmentService' => $eventSegmentService
         ]);
     }
 }

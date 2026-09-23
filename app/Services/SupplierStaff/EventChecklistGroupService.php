@@ -32,6 +32,10 @@ readonly class EventChecklistGroupService
             $event->event_type
         );
 
+        // Get the primary event segment date for checklist calculations
+        $primarySegment = $event->primarySegments()->first();
+        $eventDate = $primarySegment ? $primarySegment->date : now();
+
         foreach ($templateGroups as $templateGroup) {
             // Create event checklist group
             $eventGroup = $this->eventChecklistGroupModel::create([
@@ -47,7 +51,7 @@ readonly class EventChecklistGroupService
                 $this->eventChecklistService->createChecklistFromTemplateData(
                     $eventGroup,
                     $templateChecklistData,
-                    $event->event_date
+                    $eventDate
                 );
             }
         }

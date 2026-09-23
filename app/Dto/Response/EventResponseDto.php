@@ -9,6 +9,9 @@ use App\Models\Event;
 
 readonly class EventResponseDto
 {
+    /**
+     * @param array<EventSegmentResponseDto> $primarySegments
+     */
     public function __construct(
         public string $id,
         public string $supplierId,
@@ -16,14 +19,17 @@ readonly class EventResponseDto
         public ?string $description,
         public string $status,
         public string $eventType,
-        public string $eventDate,
         public ?CelebrantResponseDto $celebrantOne,
         public ?CelebrantResponseDto $celebrantTwo,
-        public ?AddressResponseDto $address,
+        public array $primarySegments,
     ) {}
 
     public static function fromModel(Event $event): self
     {
+        $primarySegments = $event->primarySegments
+            ->map(fn($segment) => EventSegmentResponseDto::fromModel($segment))
+            ->toArray();
+
         return new self(
             id: $event->id,
             supplierId: $event->supplier_id,
@@ -31,21 +37,33 @@ readonly class EventResponseDto
             description: $event->description,
             status: $event->status->value,
             eventType: $event->event_type->value,
-            eventDate: $event->event_date->toIso8601String(),
             celebrantOne: $event->celebrantOne
                 ? CelebrantResponseDto::fromModel($event->celebrantOne)
                 : null,
             celebrantTwo: $event->celebrantTwo
                 ? CelebrantResponseDto::fromModel($event->celebrantTwo)
                 : null,
-            address: $event->address
-                ? AddressResponseDto::fromModel($event->address)
-                : null,
+            primarySegments: $primarySegments,
         );
     }
 
     public static function fromEventData(EventWithRelationsData $eventData): self
     {
+        $primarySegments = array_map(
+            fn($segmentData) => new EventSegmentResponseDto(
+                id: $segmentData->id,
+                name: $segmentData->name,
+                isPrimary: $segmentData->isPrimary,
+                date: $segmentData->date,
+                startTime: $segmentData->startTime,
+                endTime: $segmentData->endTime,
+                address: $segmentData->address
+                    ? AddressResponseDto::fromAddressData($segmentData->address)
+                    : null,
+            ),
+            $eventData->primarySegments
+        );
+
         return new self(
             id: $eventData->id,
             supplierId: $eventData->supplierId,
@@ -53,16 +71,13 @@ readonly class EventResponseDto
             description: $eventData->description,
             status: $eventData->status->value,
             eventType: $eventData->eventType->value,
-            eventDate: $eventData->eventDate,
             celebrantOne: $eventData->celebrantOne
                 ? CelebrantResponseDto::fromCelebrantData($eventData->celebrantOne)
                 : null,
             celebrantTwo: $eventData->celebrantTwo
                 ? CelebrantResponseDto::fromCelebrantData($eventData->celebrantTwo)
                 : null,
-            address: $eventData->address
-                ? AddressResponseDto::fromAddressData($eventData->address)
-                : null,
+            primarySegments: $primarySegments,
         );
     }
 
@@ -78,10 +93,9 @@ readonly class EventResponseDto
             'description' => $this->description,
             'status' => $this->status,
             'eventType' => $this->eventType,
-            'eventDate' => $this->eventDate,
             'celebrantOne' => $this->celebrantOne?->toArray(),
             'celebrantTwo' => $this->celebrantTwo?->toArray(),
-            'address' => $this->address?->toArray(),
+            'primarySegments' => array_map(fn($segment) => $segment->toArray(), $this->primarySegments),
         ];
     }
 }

@@ -16,10 +16,8 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('status')->default(EventStatusEnum::Pending->value);
             $table->string('event_type');
-            $table->dateTime('event_date');
             $table->uuid('celebrant_one_id');
             $table->uuid('celebrant_two_id')->nullable();
-            $table->uuid('address_id')->nullable();
             $table->uuid('created_by')->nullable();
             $table->uuid('updated_by')->nullable();
             $table->timestamps();
@@ -28,7 +26,6 @@ return new class extends Migration
             $table->foreign('supplier_id')->references('id')->on('suppliers');
             $table->foreign('celebrant_one_id')->references('id')->on('celebrants');
             $table->foreign('celebrant_two_id')->references('id')->on('celebrants');
-            $table->foreign('address_id')->references('id')->on('addresses');
             // Foreign keys to supplier_staff deferred to separate migration
         });
     }

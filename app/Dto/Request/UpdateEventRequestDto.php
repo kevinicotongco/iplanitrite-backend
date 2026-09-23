@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Dto\Request;
 
 use App\Enums\EventStatusEnum;
+use App\Enums\EventTypeEnum;
 
 readonly class UpdateEventRequestDto
 {
@@ -12,10 +13,8 @@ readonly class UpdateEventRequestDto
         public string $name,
         public ?string $description,
         public EventStatusEnum $status,
-        public string $eventDate,
-        public CelebrantRequestDto $celebrantOne,
-        public ?CelebrantRequestDto $celebrantTwo,
-        public AddressRequestDto $address,
+        public EventTypeEnum $eventType,
+        public WeddingCelebrantsRequestDto|CelebrantRequestDto $celebrants,
     ) {}
 
     /**
@@ -23,14 +22,21 @@ readonly class UpdateEventRequestDto
      */
     public static function fromArray(array $data): self
     {
+        $eventType = EventTypeEnum::from($data['eventType']);
+
+        // Parse celebrants based on event type
+        if ($eventType === EventTypeEnum::Wedding) {
+            $celebrants = WeddingCelebrantsRequestDto::fromArray($data['celebrants']);
+        } else {
+            $celebrants = CelebrantRequestDto::fromArray($data['celebrant']);
+        }
+
         return new self(
             name: $data['name'],
             description: $data['description'] ?? null,
             status: EventStatusEnum::from($data['status']),
-            eventDate: $data['eventDate'],
-            celebrantOne: CelebrantRequestDto::fromArray($data['celebrantOne']),
-            celebrantTwo: isset($data['celebrantTwo']) ? CelebrantRequestDto::fromArray($data['celebrantTwo']) : null,
-            address: AddressRequestDto::fromArray($data['address']),
+            eventType: $eventType,
+            celebrants: $celebrants,
         );
     }
 }

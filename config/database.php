@@ -96,7 +96,7 @@ return [
             'search_path' => 'public',
             'sslmode' => 'prefer',
             'options' => extension_loaded('pdo_pgsql') ? [
-                PDO::ATTR_EMULATE_PREPARES => true,
+                PDO::ATTR_EMULATE_PREPARES => false,
             ] : [],
         ],
 

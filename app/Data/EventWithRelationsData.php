@@ -10,6 +10,9 @@ use App\Models\Event;
 
 final readonly class EventWithRelationsData
 {
+    /**
+     * @param array<EventSegmentData> $primarySegments
+     */
     public function __construct(
         public string $id,
         public string $supplierId,
@@ -17,14 +20,17 @@ final readonly class EventWithRelationsData
         public ?string $description,
         public EventStatusEnum $status,
         public EventTypeEnum $eventType,
-        public string $eventDate,
         public ?CelebrantWithRelationsData $celebrantOne,
         public ?CelebrantWithRelationsData $celebrantTwo,
-        public ?AddressData $address,
+        public array $primarySegments,
     ) {}
 
     public static function fromModel(Event $event): self
     {
+        $primarySegments = $event->primarySegments
+            ->map(fn($segment) => EventSegmentData::fromModel($segment))
+            ->toArray();
+
         return new self(
             id: $event->id,
             supplierId: $event->supplier_id,
@@ -32,10 +38,9 @@ final readonly class EventWithRelationsData
             description: $event->description,
             status: $event->status,
             eventType: $event->event_type,
-            eventDate: $event->event_date->toIso8601String(),
             celebrantOne: $event->celebrantOne ? CelebrantWithRelationsData::fromModel($event->celebrantOne) : null,
             celebrantTwo: $event->celebrantTwo ? CelebrantWithRelationsData::fromModel($event->celebrantTwo) : null,
-            address: $event->address ? AddressData::fromModel($event->address) : null,
+            primarySegments: $primarySegments,
         );
     }
 }

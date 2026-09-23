@@ -26,7 +26,6 @@ class Event extends Model
     protected $casts = [
         'status' => EventStatusEnum::class,
         'event_type' => EventTypeEnum::class,
-        'event_date' => 'datetime',
     ];
 
     public function supplier(): BelongsTo
@@ -42,11 +41,6 @@ class Event extends Model
     public function celebrantTwo(): BelongsTo
     {
         return $this->belongsTo(Celebrant::class, 'celebrant_two_id');
-    }
-
-    public function address(): BelongsTo
-    {
-        return $this->belongsTo(Address::class);
     }
 
     public function creator(): BelongsTo
@@ -74,5 +68,15 @@ class Event extends Model
     public function guestGroups(): HasMany
     {
         return $this->hasMany(EventGuestGroup::class);
+    }
+
+    public function segments(): HasMany
+    {
+        return $this->hasMany(EventSegment::class);
+    }
+
+    public function primarySegments(): HasMany
+    {
+        return $this->hasMany(EventSegment::class)->where('is_primary', '=', \DB::raw('true'));
     }
 }

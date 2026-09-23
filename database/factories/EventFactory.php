@@ -30,10 +30,8 @@ class EventFactory extends Factory
             'description' => fake()->paragraph(),
             'status' => fake()->randomElement(EventStatusEnum::cases()),
             'event_type' => fake()->randomElement(EventTypeEnum::cases()),
-            'event_date' => fake()->dateTimeBetween('+1 month', '+1 year'),
             'celebrant_one_id' => Celebrant::factory(),
             'celebrant_two_id' => null,
-            'address_id' => Address::factory(),
             'created_by' => null,
             'updated_by' => null,
         ];

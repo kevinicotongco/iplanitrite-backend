@@ -16,6 +16,7 @@ use App\Models\Country;
 use App\Models\Event;
 use App\Models\EventChecklist;
 use App\Models\EventChecklistGroup;
+use App\Models\EventSegment;
 use App\Models\Supplier;
 use App\Models\SupplierRole;
 use App\Models\SupplierStaff;
@@ -90,10 +91,15 @@ class SupplierEventManagementTest extends TestCase
 
     public function test_supplier_staff_can_get_events_list(): void
     {
-        Event::factory()->create([
+        $event = Event::factory()->create([
             'supplier_id' => $this->supplier->id,
             'name' => 'Wedding Event',
             'status' => EventStatusEnum::Pending,
+        ]);
+
+        EventSegment::factory()->create([
+            'event_id' => $event->id,
+            'name' => 'Wedding',
         ]);
 
         $response = $this->withToken($this->token)
@@ -107,27 +113,39 @@ class SupplierEventManagementTest extends TestCase
                     'name',
                     'description',
                     'status',
-                    'eventDate',
+                    'eventType',
                     'celebrantOne',
                     'celebrantTwo',
-                    'address',
+                    'primarySegments' => [
+                        '*' => [
+                            'id',
+                            'name',
+                            'isPrimary',
+                            'date',
+                            'startTime',
+                            'endTime',
+                            'address',
+                        ],
+                    ],
                 ],
             ]);
     }
 
     public function test_can_filter_events_by_search_text(): void
     {
-        Event::factory()->create([
+        $event1 = Event::factory()->create([
             'supplier_id' => $this->supplier->id,
             'name' => 'Wedding Event',
             'status' => EventStatusEnum::Pending,
         ]);
+        EventSegment::factory()->create(['event_id' => $event1->id]);
 
-        Event::factory()->create([
+        $event2 = Event::factory()->create([
             'supplier_id' => $this->supplier->id,
             'name' => 'Birthday Party',
             'status' => EventStatusEnum::Pending,
         ]);
+        EventSegment::factory()->create(['event_id' => $event2->id]);
 
         $response = $this->withToken($this->token)
             ->getJson('/api/suppliers/events?searchText=Wedding');
@@ -138,17 +156,19 @@ class SupplierEventManagementTest extends TestCase
 
     public function test_can_filter_events_by_status(): void
     {
-        Event::factory()->create([
+        $event1 = Event::factory()->create([
             'supplier_id' => $this->supplier->id,
             'name' => 'Pending Event',
             'status' => EventStatusEnum::Pending,
         ]);
+        EventSegment::factory()->create(['event_id' => $event1->id]);
 
-        Event::factory()->create([
+        $event2 = Event::factory()->create([
             'supplier_id' => $this->supplier->id,
             'name' => 'Completed Event',
             'status' => EventStatusEnum::Completed,
         ]);
+        EventSegment::factory()->create(['event_id' => $event2->id]);
 
         $response = $this->withToken($this->token)
             ->getJson('/api/suppliers/events?status=Completed');
@@ -171,23 +191,26 @@ class SupplierEventManagementTest extends TestCase
         $eventData = [
             'name' => 'John\'s Birthday',
             'description' => 'A fun birthday party',
-            'status' => 'Pending',
             'eventType' => EventTypeEnum::Birthday->value,
-            'eventDate' => '2024-12-25T14:00:00Z',
-            'celebrantOne' => [
+            'celebrant' => [
                 'firstName' => 'John',
                 'middleName' => 'Michael',
                 'lastName' => 'Doe',
                 'contactNumber' => '+12345678901',
             ],
-            'address' => [
-                'line1' => '123 Main St',
-                'line2' => 'Apt 4B',
-                'city' => 'New York',
-                'state' => 'NY',
-                'zip' => '10001',
-                'lat' => '40.712776',
-                'long' => '-74.005974',
+            'segment' => [
+                'date' => '2024-12-25',
+                'startTime' => '14:00:00',
+                'endTime' => '18:00:00',
+                'address' => [
+                    'line1' => '123 Main St',
+                    'line2' => 'Apt 4B',
+                    'city' => 'New York',
+                    'state' => 'NY',
+                    'zip' => '10001',
+                    'lat' => '40.712776',
+                    'long' => '-74.005974',
+                ],
             ],
             'clients' => [
                 [
@@ -201,23 +224,13 @@ class SupplierEventManagementTest extends TestCase
         $response = $this->withToken($this->token)
             ->postJson('/api/suppliers/events', $eventData);
 
-        $response->assertStatus(201)
-            ->assertJsonStructure([
-                'id',
-                'supplierId',
-                'name',
-                'description',
-                'status',
-                'eventType',
-                'eventDate',
-                'celebrantOne',
-                'address',
-            ]);
+        $response->assertStatus(201);
 
         $this->assertDatabaseHas('events', [
             'name' => 'John\'s Birthday',
             'supplier_id' => $this->supplier->id,
             'event_type' => 'Birthday',
+            'status' => 'Pending',
             'created_by' => $this->staff->id,
             'updated_by' => $this->staff->id,
         ]);
@@ -227,6 +240,11 @@ class SupplierEventManagementTest extends TestCase
             'last_name' => 'Doe',
             'created_by' => $this->staff->id,
             'updated_by' => $this->staff->id,
+        ]);
+
+        $this->assertDatabaseHas('event_segments', [
+            'name' => 'Birthday',
+            'date' => '2024-12-25',
         ]);
 
         $this->assertDatabaseHas('clients', [
@@ -242,22 +260,40 @@ class SupplierEventManagementTest extends TestCase
         $eventData = [
             'name' => 'John and Jane Wedding',
             'description' => 'A beautiful wedding',
-            'status' => 'Pending',
             'eventType' => EventTypeEnum::Wedding->value,
-            'eventDate' => '2024-12-25T14:00:00Z',
-            'celebrantOne' => [
-                'firstName' => 'John',
-                'lastName' => 'Doe',
+            'celebrants' => [
+                'bride' => [
+                    'firstName' => 'Jane',
+                    'lastName' => 'Smith',
+                ],
+                'groom' => [
+                    'firstName' => 'John',
+                    'lastName' => 'Doe',
+                ],
             ],
-            'celebrantTwo' => [
-                'firstName' => 'Jane',
-                'lastName' => 'Smith',
-            ],
-            'address' => [
-                'line1' => '123 Main St',
-                'city' => 'New York',
-                'state' => 'NY',
-                'zip' => '10001',
+            'segments' => [
+                'wedding' => [
+                    'date' => '2024-12-25',
+                    'startTime' => '14:00:00',
+                    'endTime' => '16:00:00',
+                    'address' => [
+                        'line1' => '123 Main St',
+                        'city' => 'New York',
+                        'state' => 'NY',
+                        'zip' => '10001',
+                    ],
+                ],
+                'reception' => [
+                    'date' => '2024-12-25',
+                    'startTime' => '18:00:00',
+                    'endTime' => '23:00:00',
+                    'address' => [
+                        'line1' => '456 Party Ave',
+                        'city' => 'New York',
+                        'state' => 'NY',
+                        'zip' => '10002',
+                    ],
+                ],
             ],
             'clients' => [
                 [
@@ -271,12 +307,24 @@ class SupplierEventManagementTest extends TestCase
         $response = $this->withToken($this->token)
             ->postJson('/api/suppliers/events', $eventData);
 
-        $response->assertStatus(201)
-            ->assertJsonPath('celebrantTwo.firstName', 'Jane');
+        $response->assertStatus(201);
 
         $this->assertDatabaseHas('celebrants', [
             'first_name' => 'Jane',
             'last_name' => 'Smith',
+        ]);
+
+        $this->assertDatabaseHas('celebrants', [
+            'first_name' => 'John',
+            'last_name' => 'Doe',
+        ]);
+
+        $this->assertDatabaseHas('event_segments', [
+            'name' => 'Wedding',
+        ]);
+
+        $this->assertDatabaseHas('event_segments', [
+            'name' => 'Reception',
         ]);
     }
 
@@ -284,18 +332,21 @@ class SupplierEventManagementTest extends TestCase
     {
         $eventData = [
             'name' => 'Test Event',
-            'status' => 'Pending',
             'eventType' => EventTypeEnum::Debut->value,
-            'eventDate' => '2024-12-25T14:00:00Z',
-            'celebrantOne' => [
+            'celebrant' => [
                 'firstName' => 'John',
                 'lastName' => 'Doe',
             ],
-            'address' => [
-                'line1' => '123 Main St',
-                'city' => 'New York',
-                'state' => 'NY',
-                'zip' => '10001',
+            'segment' => [
+                'date' => '2024-12-25',
+                'startTime' => '14:00:00',
+                'endTime' => '18:00:00',
+                'address' => [
+                    'line1' => '123 Main St',
+                    'city' => 'New York',
+                    'state' => 'NY',
+                    'zip' => '10001',
+                ],
             ],
             'clients' => [
                 [
@@ -333,18 +384,21 @@ class SupplierEventManagementTest extends TestCase
 
         $eventData = [
             'name' => 'Test Event',
-            'status' => 'Pending',
             'eventType' => EventTypeEnum::Baptism->value,
-            'eventDate' => '2024-12-25T14:00:00Z',
-            'celebrantOne' => [
+            'celebrant' => [
                 'firstName' => 'John',
                 'lastName' => 'Doe',
             ],
-            'address' => [
-                'line1' => '123 Main St',
-                'city' => 'New York',
-                'state' => 'NY',
-                'zip' => '10001',
+            'segment' => [
+                'date' => '2024-12-25',
+                'startTime' => '14:00:00',
+                'endTime' => '16:00:00',
+                'address' => [
+                    'line1' => '123 Main St',
+                    'city' => 'New York',
+                    'state' => 'NY',
+                    'zip' => '10001',
+                ],
             ],
             'clients' => [
                 [
@@ -367,18 +421,29 @@ class SupplierEventManagementTest extends TestCase
     public function test_validation_fails_when_name_is_missing(): void
     {
         $eventData = [
-            'status' => 'Pending',
             'eventType' => EventTypeEnum::Wedding->value,
-            'eventDate' => '2024-12-25T14:00:00Z',
-            'celebrantOne' => [
-                'firstName' => 'John',
-                'lastName' => 'Doe',
+            'celebrants' => [
+                'bride' => [
+                    'firstName' => 'Jane',
+                    'lastName' => 'Doe',
+                ],
+                'groom' => [
+                    'firstName' => 'John',
+                    'lastName' => 'Doe',
+                ],
             ],
-            'address' => [
-                'line1' => '123 Main St',
-                'city' => 'New York',
-                'state' => 'NY',
-                'zip' => '10001',
+            'segments' => [
+                'wedding' => [
+                    'date' => '2024-12-25',
+                    'startTime' => '14:00:00',
+                    'endTime' => '16:00:00',
+                    'address' => [
+                        'line1' => '123 Main St',
+                        'city' => 'New York',
+                        'state' => 'NY',
+                        'zip' => '10001',
+                    ],
+                ],
             ],
             'clients' => [
                 [
@@ -400,18 +465,29 @@ class SupplierEventManagementTest extends TestCase
     {
         $eventData = [
             'name' => 'Test Event',
-            'status' => 'Pending',
             'eventType' => EventTypeEnum::Wedding->value,
-            'eventDate' => '2024-12-25T14:00:00Z',
-            'celebrantOne' => [
-                'firstName' => 'John',
-                'lastName' => 'Doe',
+            'celebrants' => [
+                'bride' => [
+                    'firstName' => 'Jane',
+                    'lastName' => 'Doe',
+                ],
+                'groom' => [
+                    'firstName' => 'John',
+                    'lastName' => 'Doe',
+                ],
             ],
-            'address' => [
-                'line1' => '123 Main St',
-                'city' => 'New York',
-                'state' => 'NY',
-                'zip' => '10001',
+            'segments' => [
+                'wedding' => [
+                    'date' => '2024-12-25',
+                    'startTime' => '14:00:00',
+                    'endTime' => '16:00:00',
+                    'address' => [
+                        'line1' => '123 Main St',
+                        'city' => 'New York',
+                        'state' => 'NY',
+                        'zip' => '10001',
+                    ],
+                ],
             ],
             'clients' => [],
         ];
@@ -427,18 +503,21 @@ class SupplierEventManagementTest extends TestCase
     {
         $eventData = [
             'name' => 'Test Event',
-            'status' => 'Pending',
-            'eventType' => EventTypeEnum::Wedding->value,
-            'eventDate' => '2024-12-25T14:00:00Z',
-            'celebrantOne' => [
+            'eventType' => EventTypeEnum::Birthday->value,
+            'celebrant' => [
                 'firstName' => 'John',
                 'lastName' => 'Doe',
             ],
-            'address' => [
-                'line1' => '123 Main St',
-                'city' => 'New York',
-                'state' => 'NY',
-                'zip' => '10001',
+            'segment' => [
+                'date' => '2024-12-25',
+                'startTime' => '14:00:00',
+                'endTime' => '18:00:00',
+                'address' => [
+                    'line1' => '123 Main St',
+                    'city' => 'New York',
+                    'state' => 'NY',
+                    'zip' => '10001',
+                ],
             ],
             'clients' => [
                 [
@@ -462,36 +541,30 @@ class SupplierEventManagementTest extends TestCase
             'supplier_id' => $this->supplier->id,
             'name' => 'Original Name',
             'status' => EventStatusEnum::Pending,
+            'event_type' => EventTypeEnum::Birthday,
         ]);
+        EventSegment::factory()->create(['event_id' => $event->id]);
 
         $updateData = [
             'name' => 'Updated Name',
             'description' => 'Updated description',
             'status' => 'Ongoing',
-            'eventDate' => '2024-12-31T18:00:00Z',
-            'celebrantOne' => [
+            'eventType' => EventTypeEnum::Birthday->value,
+            'celebrant' => [
                 'firstName' => 'Updated',
                 'lastName' => 'Name',
-            ],
-            'address' => [
-                'line1' => '456 New St',
-                'city' => 'Boston',
-                'state' => 'MA',
-                'zip' => '02101',
             ],
         ];
 
         $response = $this->withToken($this->token)
             ->putJson("/api/suppliers/events/{$event->id}", $updateData);
 
-        $response->assertStatus(200)
-            ->assertJsonPath('name', 'Updated Name')
-            ->assertJsonPath('status', 'Ongoing');
+        $response->assertStatus(200);
 
         $this->assertDatabaseHas('events', [
             'id' => $event->id,
             'name' => 'Updated Name',
-            'status' => EventStatusEnum::Ongoing,
+            'status' => EventStatusEnum::Ongoing->value,
             'updated_by' => $this->staff->id,
         ]);
     }
@@ -501,33 +574,30 @@ class SupplierEventManagementTest extends TestCase
         $event = Event::factory()->create([
             'supplier_id' => $this->supplier->id,
             'celebrant_two_id' => null,
+            'event_type' => EventTypeEnum::Wedding,
         ]);
+        EventSegment::factory()->create(['event_id' => $event->id]);
 
         $updateData = [
             'name' => $event->name,
             'status' => $event->status->value,
-            'eventDate' => $event->event_date->toIso8601String(),
-            'celebrantOne' => [
-                'firstName' => $event->celebrantOne->first_name,
-                'lastName' => $event->celebrantOne->last_name,
-            ],
-            'celebrantTwo' => [
-                'firstName' => 'Second',
-                'lastName' => 'Celebrant',
-            ],
-            'address' => [
-                'line1' => $event->address->line1,
-                'city' => $event->address->city,
-                'state' => $event->address->state,
-                'zip' => $event->address->zip,
+            'eventType' => EventTypeEnum::Wedding->value,
+            'celebrants' => [
+                'bride' => [
+                    'firstName' => $event->celebrantOne->first_name,
+                    'lastName' => $event->celebrantOne->last_name,
+                ],
+                'groom' => [
+                    'firstName' => 'Second',
+                    'lastName' => 'Celebrant',
+                ],
             ],
         ];
 
         $response = $this->withToken($this->token)
             ->putJson("/api/suppliers/events/{$event->id}", $updateData);
 
-        $response->assertStatus(200)
-            ->assertJsonPath('celebrantTwo.firstName', 'Second');
+        $response->assertStatus(200);
 
         $event->refresh();
         $this->assertNotNull($event->celebrant_two_id);
@@ -546,21 +616,17 @@ class SupplierEventManagementTest extends TestCase
 
         $event = Event::factory()->create([
             'supplier_id' => $otherSupplier->id,
+            'event_type' => EventTypeEnum::Birthday,
         ]);
+        EventSegment::factory()->create(['event_id' => $event->id]);
 
         $updateData = [
             'name' => 'Updated Name',
             'status' => 'Ongoing',
-            'eventDate' => '2024-12-31T18:00:00Z',
-            'celebrantOne' => [
+            'eventType' => EventTypeEnum::Birthday->value,
+            'celebrant' => [
                 'firstName' => 'Updated',
                 'lastName' => 'Name',
-            ],
-            'address' => [
-                'line1' => '456 New St',
-                'city' => 'Boston',
-                'state' => 'MA',
-                'zip' => '02101',
             ],
         ];
 
@@ -574,21 +640,17 @@ class SupplierEventManagementTest extends TestCase
     {
         $event = Event::factory()->create([
             'supplier_id' => $this->supplier->id,
+            'event_type' => EventTypeEnum::Birthday,
         ]);
+        EventSegment::factory()->create(['event_id' => $event->id]);
 
         $updateData = [
             'name' => 'Updated Name',
             'status' => 'Ongoing',
-            'eventDate' => '2024-12-31T18:00:00Z',
-            'celebrantOne' => [
+            'eventType' => EventTypeEnum::Birthday->value,
+            'celebrant' => [
                 'firstName' => 'Updated',
                 'lastName' => 'Name',
-            ],
-            'address' => [
-                'line1' => '456 New St',
-                'city' => 'Boston',
-                'state' => 'MA',
-                'zip' => '02101',
             ],
         ];
 
@@ -603,18 +665,21 @@ class SupplierEventManagementTest extends TestCase
     {
         $eventData = [
             'name' => 'Test Event',
-            'status' => 'Pending',
-            'eventType' => EventTypeEnum::Wedding->value,
-            'eventDate' => '2024-12-25T14:00:00Z',
-            'celebrantOne' => [
+            'eventType' => EventTypeEnum::Birthday->value,
+            'celebrant' => [
                 'firstName' => 'John',
                 'lastName' => 'Doe',
             ],
-            'address' => [
-                'line1' => '123 Main St',
-                'city' => 'New York',
-                'state' => 'NY',
-                'zip' => '10001',
+            'segment' => [
+                'date' => '2024-12-25',
+                'startTime' => '14:00:00',
+                'endTime' => '18:00:00',
+                'address' => [
+                    'line1' => '123 Main St',
+                    'city' => 'New York',
+                    'state' => 'NY',
+                    'zip' => '10001',
+                ],
             ],
             'clients' => [
                 [
@@ -625,7 +690,7 @@ class SupplierEventManagementTest extends TestCase
             ],
         ];
 
-        $beforeCreate = now()->subSecond(); // Subtract a second to avoid precision issues
+        $beforeCreate = now()->subSecond();
 
         $response = $this->withToken($this->token)
             ->postJson('/api/suppliers/events', $eventData);
@@ -644,26 +709,21 @@ class SupplierEventManagementTest extends TestCase
     {
         $event = Event::factory()->create([
             'supplier_id' => $this->supplier->id,
+            'event_type' => EventTypeEnum::Birthday,
         ]);
+        EventSegment::factory()->create(['event_id' => $event->id]);
 
         $originalUpdatedAt = $event->updated_at;
 
-        // Wait a moment to ensure timestamp difference
         sleep(1);
 
         $updateData = [
             'name' => 'Updated Event Name',
             'status' => $event->status->value,
-            'eventDate' => $event->event_date->toIso8601String(),
-            'celebrantOne' => [
+            'eventType' => EventTypeEnum::Birthday->value,
+            'celebrant' => [
                 'firstName' => $event->celebrantOne->first_name,
                 'lastName' => $event->celebrantOne->last_name,
-            ],
-            'address' => [
-                'line1' => $event->address->line1,
-                'city' => $event->address->city,
-                'state' => $event->address->state,
-                'zip' => $event->address->zip,
             ],
         ];
 
@@ -682,7 +742,7 @@ class SupplierEventManagementTest extends TestCase
             'supplier_id' => $this->supplier->id,
         ]);
 
-        $beforeDelete = now()->subSecond(); // Subtract a second to avoid precision issues
+        $beforeDelete = now()->subSecond();
 
         $event->delete();
 
@@ -695,7 +755,6 @@ class SupplierEventManagementTest extends TestCase
 
     public function test_cannot_create_event_with_admin_id_as_created_by(): void
     {
-        // Create an Admin user
         $admin = Admin::create([
             'id' => Str::uuid()->toString(),
             'email' => 'admin@test.com',
@@ -707,21 +766,17 @@ class SupplierEventManagementTest extends TestCase
         $failed = false;
 
         try {
-            // Attempt to create an event with admin ID in created_by field
-            // This should fail because created_by has a foreign key to supplier_staff table
             Event::create([
                 'id' => Str::uuid()->toString(),
                 'supplier_id' => $this->supplier->id,
                 'name' => 'Test Event',
                 'status' => EventStatusEnum::Pending,
                 'event_type' => EventTypeEnum::Wedding,
-                'event_date' => now()->addDays(30),
                 'celebrant_one_id' => Str::uuid()->toString(),
-                'created_by' => $admin->id, // This should fail - Admin ID in supplier_staff foreign key
+                'created_by' => $admin->id,
                 'updated_by' => $this->staff->id,
             ]);
         } catch (QueryException $e) {
-            // Foreign key constraint should prevent this
             $this->assertStringContainsString('foreign key constraint', $e->getMessage());
             $failed = true;
         }
@@ -731,7 +786,6 @@ class SupplierEventManagementTest extends TestCase
 
     public function test_cannot_create_event_with_client_id_as_created_by(): void
     {
-        // Create a Client user
         $client = Client::create([
             'id' => Str::uuid()->toString(),
             'supplier_id' => $this->supplier->id,
@@ -743,22 +797,18 @@ class SupplierEventManagementTest extends TestCase
 
         $failed = false;
 
-        try {
-            // Attempt to create an event with client ID in created_by field
-            // This should fail because created_by has a foreign key to supplier_staff table
+        try{
             Event::create([
                 'id' => Str::uuid()->toString(),
                 'supplier_id' => $this->supplier->id,
                 'name' => 'Test Event',
                 'status' => EventStatusEnum::Pending,
                 'event_type' => EventTypeEnum::Birthday,
-                'event_date' => now()->addDays(30),
                 'celebrant_one_id' => Str::uuid()->toString(),
-                'created_by' => $client->id, // This should fail - Client ID in supplier_staff foreign key
+                'created_by' => $client->id,
                 'updated_by' => $this->staff->id,
             ]);
         } catch (QueryException $e) {
-            // Foreign key constraint should prevent this
             $this->assertStringContainsString('foreign key constraint', $e->getMessage());
             $failed = true;
         }
@@ -768,7 +818,6 @@ class SupplierEventManagementTest extends TestCase
 
     public function test_event_created_by_must_reference_valid_supplier_staff(): void
     {
-        // This test verifies that only valid supplier_staff IDs can be used
         $validStaffId = $this->staff->id;
 
         $event = Event::factory()->create([
@@ -788,7 +837,6 @@ class SupplierEventManagementTest extends TestCase
 
     public function test_creating_event_copies_template_checklists(): void
     {
-        // Create template checklist group for Birthday events
         $templateGroup = SupplierTemplateChecklistGroup::create([
             'id' => Str::uuid()->toString(),
             'supplier_id' => $this->supplier->id,
@@ -796,7 +844,6 @@ class SupplierEventManagementTest extends TestCase
             'event_type' => EventTypeEnum::Birthday,
         ]);
 
-        // Create template checklists with different frequencies
         $template1 = SupplierTemplateChecklist::create([
             'id' => Str::uuid()->toString(),
             'supplier_template_checklist_group_id' => $templateGroup->id,
@@ -804,7 +851,7 @@ class SupplierEventManagementTest extends TestCase
             'description' => 'Book the party venue',
             'frequency_days' => 30,
             'frequency_type' => ChecklistFrequencyTypeEnum::Days->value,
-            'frequency_anchor' => FrequencyAnchorEnum::BeforeEvent->value, // 30 days before event
+            'frequency_anchor' => FrequencyAnchorEnum::BeforeEvent->value,
         ]);
 
         $template2 = SupplierTemplateChecklist::create([
@@ -814,24 +861,27 @@ class SupplierEventManagementTest extends TestCase
             'description' => 'Send thank you notes',
             'frequency_days' => 7,
             'frequency_type' => ChecklistFrequencyTypeEnum::Days->value,
-            'frequency_anchor' => FrequencyAnchorEnum::AfterCreation->value, // 7 days after creation
+            'frequency_anchor' => FrequencyAnchorEnum::AfterCreation->value,
         ]);
 
-        // Create event
+        $createdAt = now();
         $eventData = [
             'name' => 'Birthday Party',
-            'status' => 'Pending',
             'eventType' => EventTypeEnum::Birthday->value,
-            'eventDate' => '2024-12-25T14:00:00Z',
-            'celebrantOne' => [
+            'celebrant' => [
                 'firstName' => 'John',
                 'lastName' => 'Doe',
             ],
-            'address' => [
-                'line1' => '123 Main St',
-                'city' => 'New York',
-                'state' => 'NY',
-                'zip' => '10001',
+            'segment' => [
+                'date' => '2024-12-25',
+                'startTime' => '14:00:00',
+                'endTime' => '18:00:00',
+                'address' => [
+                    'line1' => '123 Main St',
+                    'city' => 'New York',
+                    'state' => 'NY',
+                    'zip' => '10001',
+                ],
             ],
             'clients' => [
                 [
@@ -849,7 +899,6 @@ class SupplierEventManagementTest extends TestCase
 
         $event = Event::where('name', 'Birthday Party')->first();
 
-        // Assert event checklist group was created
         $this->assertDatabaseHas('event_checklist_groups', [
             'event_id' => $event->id,
             'name' => 'Birthday Checklist',
@@ -858,29 +907,25 @@ class SupplierEventManagementTest extends TestCase
 
         $eventGroup = EventChecklistGroup::where('event_id', $event->id)->first();
 
-        // Assert event checklists were copied
         $this->assertDatabaseHas('event_checklists', [
             'event_checklist_group_id' => $eventGroup->id,
             'name' => 'Book venue',
             'description' => 'Book the party venue',
-            'due_date' => '2024-11-25', // 30 days before Dec 25
+            'due_date' => '2024-11-25',
         ]);
 
-        // For AfterCreation, due_date should be 7 days from now
         $checklist = EventChecklist::where('event_checklist_group_id', $eventGroup->id)
             ->where('name', 'Send thank you cards')
             ->first();
 
         $this->assertNotNull($checklist);
         $this->assertEquals('Send thank you notes', $checklist->description);
-        // Check that due date is 7 days from now (compare date only, not time)
         $expectedDueDate = now()->addDays(7)->format('Y-m-d');
         $this->assertEquals($expectedDueDate, $checklist->due_date->format('Y-m-d'));
     }
 
     public function test_only_copies_checklists_matching_event_type(): void
     {
-        // Create template for Birthday
         $birthdayGroup = SupplierTemplateChecklistGroup::create([
             'id' => Str::uuid()->toString(),
             'supplier_id' => $this->supplier->id,
@@ -895,7 +940,6 @@ class SupplierEventManagementTest extends TestCase
             'frequency_days' => -7,
         ]);
 
-        // Create template for Wedding
         $weddingGroup = SupplierTemplateChecklistGroup::create([
             'id' => Str::uuid()->toString(),
             'supplier_id' => $this->supplier->id,
@@ -910,21 +954,31 @@ class SupplierEventManagementTest extends TestCase
             'frequency_days' => -14,
         ]);
 
-        // Create Wedding event
         $eventData = [
             'name' => 'Wedding Event',
-            'status' => 'Pending',
             'eventType' => EventTypeEnum::Wedding->value,
-            'eventDate' => '2024-12-25T14:00:00Z',
-            'celebrantOne' => [
-                'firstName' => 'John',
-                'lastName' => 'Doe',
+            'celebrants' => [
+                'bride' => [
+                    'firstName' => 'Jane',
+                    'lastName' => 'Doe',
+                ],
+                'groom' => [
+                    'firstName' => 'John',
+                    'lastName' => 'Doe',
+                ],
             ],
-            'address' => [
-                'line1' => '123 Main St',
-                'city' => 'New York',
-                'state' => 'NY',
-                'zip' => '10001',
+            'segments' => [
+                'wedding' => [
+                    'date' => '2024-12-25',
+                    'startTime' => '14:00:00',
+                    'endTime' => '16:00:00',
+                    'address' => [
+                        'line1' => '123 Main St',
+                        'city' => 'New York',
+                        'state' => 'NY',
+                        'zip' => '10001',
+                    ],
+                ],
             ],
             'clients' => [
                 [
@@ -942,14 +996,12 @@ class SupplierEventManagementTest extends TestCase
 
         $event = Event::where('name', 'Wedding Event')->first();
 
-        // Assert only Wedding checklist group was created
         $this->assertDatabaseHas('event_checklist_groups', [
             'event_id' => $event->id,
             'name' => 'Wedding Tasks',
             'event_type' => 'Wedding',
         ]);
 
-        // Assert Birthday checklist group was NOT created
         $this->assertDatabaseMissing('event_checklist_groups', [
             'event_id' => $event->id,
             'name' => 'Birthday Tasks',
@@ -957,13 +1009,11 @@ class SupplierEventManagementTest extends TestCase
 
         $eventGroup = EventChecklistGroup::where('event_id', $event->id)->first();
 
-        // Assert Wedding task was copied
         $this->assertDatabaseHas('event_checklists', [
             'event_checklist_group_id' => $eventGroup->id,
             'name' => 'Wedding Task',
         ]);
 
-        // Assert Birthday task was NOT copied
         $this->assertDatabaseMissing('event_checklists', [
             'name' => 'Birthday Task',
         ]);
@@ -973,7 +1023,6 @@ class SupplierEventManagementTest extends TestCase
     {
         $eventDate = now()->addDays(30);
 
-        // Create template checklist with DAYS frequency type
         $templateGroup = SupplierTemplateChecklistGroup::create([
             'supplier_id' => $this->supplier->id,
             'name' => 'Pre-Event Tasks',
@@ -993,21 +1042,25 @@ class SupplierEventManagementTest extends TestCase
             'updated_by' => $this->staff->id,
         ]);
 
+        $createdAt = now();
         $eventData = [
             'name' => 'Birthday Party',
             'description' => 'Test event',
-            'status' => 'Pending',
             'eventType' => EventTypeEnum::Birthday->value,
-            'eventDate' => $eventDate->toIso8601String(),
-            'celebrantOne' => [
+            'celebrant' => [
                 'firstName' => 'John',
                 'lastName' => 'Doe',
             ],
-            'address' => [
-                'line1' => '123 Main St',
-                'city' => 'City',
-                'state' => 'State',
-                'zip' => '12345',
+            'segment' => [
+                'date' => $eventDate->format('Y-m-d'),
+                'startTime' => '14:00:00',
+                'endTime' => '18:00:00',
+                'address' => [
+                    'line1' => '123 Main St',
+                    'city' => 'New York',
+                    'state' => 'NY',
+                    'zip' => '10001',
+                ],
             ],
             'clients' => [
                 [
@@ -1033,9 +1086,8 @@ class SupplierEventManagementTest extends TestCase
 
     public function test_checklist_due_date_calculated_with_weeks_frequency(): void
     {
-        $eventDate = now()->addDays(30);
+        $eventDate = now()->addWeeks(8);
 
-        // Create template checklist with WEEKS frequency type
         $templateGroup = SupplierTemplateChecklistGroup::create([
             'supplier_id' => $this->supplier->id,
             'name' => 'Pre-Event Tasks',
@@ -1055,21 +1107,25 @@ class SupplierEventManagementTest extends TestCase
             'updated_by' => $this->staff->id,
         ]);
 
+        $createdAt = now();
         $eventData = [
             'name' => 'Birthday Party',
             'description' => 'Test event',
-            'status' => 'Pending',
             'eventType' => EventTypeEnum::Birthday->value,
-            'eventDate' => $eventDate->toIso8601String(),
-            'celebrantOne' => [
+            'celebrant' => [
                 'firstName' => 'John',
                 'lastName' => 'Doe',
             ],
-            'address' => [
-                'line1' => '123 Main St',
-                'city' => 'City',
-                'state' => 'State',
-                'zip' => '12345',
+            'segment' => [
+                'date' => $eventDate->format('Y-m-d'),
+                'startTime' => '14:00:00',
+                'endTime' => '18:00:00',
+                'address' => [
+                    'line1' => '123 Main St',
+                    'city' => 'New York',
+                    'state' => 'NY',
+                    'zip' => '10001',
+                ],
             ],
             'clients' => [
                 [
@@ -1097,7 +1153,6 @@ class SupplierEventManagementTest extends TestCase
     {
         $eventDate = now()->addMonths(6);
 
-        // Create template checklist with MONTHS frequency type
         $templateGroup = SupplierTemplateChecklistGroup::create([
             'supplier_id' => $this->supplier->id,
             'name' => 'Pre-Event Tasks',
@@ -1108,30 +1163,34 @@ class SupplierEventManagementTest extends TestCase
 
         SupplierTemplateChecklist::create([
             'supplier_template_checklist_group_id' => $templateGroup->id,
-            'name' => 'Task 3 months before',
-            'description' => 'Complete 3 months before event',
-            'frequency_days' => 3,
+            'name' => 'Task 2 months before',
+            'description' => 'Complete 2 months before event',
+            'frequency_days' => 2,
             'frequency_type' => ChecklistFrequencyTypeEnum::Months->value,
             'frequency_anchor' => FrequencyAnchorEnum::BeforeEvent->value,
             'created_by' => $this->staff->id,
             'updated_by' => $this->staff->id,
         ]);
 
+        $createdAt = now();
         $eventData = [
             'name' => 'Birthday Party',
             'description' => 'Test event',
-            'status' => 'Pending',
             'eventType' => EventTypeEnum::Birthday->value,
-            'eventDate' => $eventDate->toIso8601String(),
-            'celebrantOne' => [
+            'celebrant' => [
                 'firstName' => 'John',
                 'lastName' => 'Doe',
             ],
-            'address' => [
-                'line1' => '123 Main St',
-                'city' => 'City',
-                'state' => 'State',
-                'zip' => '12345',
+            'segment' => [
+                'date' => $eventDate->format('Y-m-d'),
+                'startTime' => '14:00:00',
+                'endTime' => '18:00:00',
+                'address' => [
+                    'line1' => '123 Main St',
+                    'city' => 'New York',
+                    'state' => 'NY',
+                    'zip' => '10001',
+                ],
             ],
             'clients' => [
                 [
@@ -1151,15 +1210,14 @@ class SupplierEventManagementTest extends TestCase
         $eventGroup = EventChecklistGroup::where('event_id', $event->id)->first();
         $checklist = EventChecklist::where('event_checklist_group_id', $eventGroup->id)->first();
 
-        $expectedDueDate = $eventDate->copy()->subMonths(3)->format('Y-m-d');
+        $expectedDueDate = $eventDate->copy()->subMonths(2)->format('Y-m-d');
         $this->assertEquals($expectedDueDate, $checklist->due_date->format('Y-m-d'));
     }
 
     public function test_checklist_due_date_calculated_with_after_creation_days(): void
     {
-        $eventDate = now()->addDays(30);
+        $eventDate = now()->addMonths(6);
 
-        // Create template checklist with AfterCreation anchor
         $templateGroup = SupplierTemplateChecklistGroup::create([
             'supplier_id' => $this->supplier->id,
             'name' => 'Post-Creation Tasks',
@@ -1170,30 +1228,34 @@ class SupplierEventManagementTest extends TestCase
 
         SupplierTemplateChecklist::create([
             'supplier_template_checklist_group_id' => $templateGroup->id,
-            'name' => 'Task 5 days after creation',
-            'description' => 'Complete 5 days after checklist creation',
-            'frequency_days' => 5,
+            'name' => 'Task 3 days after creation',
+            'description' => 'Complete 3 days after event creation',
+            'frequency_days' => 3,
             'frequency_type' => ChecklistFrequencyTypeEnum::Days->value,
             'frequency_anchor' => FrequencyAnchorEnum::AfterCreation->value,
             'created_by' => $this->staff->id,
             'updated_by' => $this->staff->id,
         ]);
 
+        $createdAt = now();
         $eventData = [
             'name' => 'Birthday Party',
             'description' => 'Test event',
-            'status' => 'Pending',
             'eventType' => EventTypeEnum::Birthday->value,
-            'eventDate' => $eventDate->toIso8601String(),
-            'celebrantOne' => [
+            'celebrant' => [
                 'firstName' => 'John',
                 'lastName' => 'Doe',
             ],
-            'address' => [
-                'line1' => '123 Main St',
-                'city' => 'City',
-                'state' => 'State',
-                'zip' => '12345',
+            'segment' => [
+                'date' => $eventDate->format('Y-m-d'),
+                'startTime' => '14:00:00',
+                'endTime' => '18:00:00',
+                'address' => [
+                    'line1' => '123 Main St',
+                    'city' => 'New York',
+                    'state' => 'NY',
+                    'zip' => '10001',
+                ],
             ],
             'clients' => [
                 [
@@ -1204,7 +1266,6 @@ class SupplierEventManagementTest extends TestCase
             ],
         ];
 
-        $createdAt = now();
         $response = $this->withToken($this->token)
             ->postJson('/api/suppliers/events', $eventData);
 
@@ -1214,15 +1275,14 @@ class SupplierEventManagementTest extends TestCase
         $eventGroup = EventChecklistGroup::where('event_id', $event->id)->first();
         $checklist = EventChecklist::where('event_checklist_group_id', $eventGroup->id)->first();
 
-        $expectedDueDate = $createdAt->copy()->addDays(5)->format('Y-m-d');
+        $expectedDueDate = now()->addDays(3)->format('Y-m-d');
         $this->assertEquals($expectedDueDate, $checklist->due_date->format('Y-m-d'));
     }
 
     public function test_checklist_due_date_calculated_with_after_creation_weeks(): void
     {
-        $eventDate = now()->addDays(30);
+        $eventDate = now()->addMonths(6);
 
-        // Create template checklist with AfterCreation anchor
         $templateGroup = SupplierTemplateChecklistGroup::create([
             'supplier_id' => $this->supplier->id,
             'name' => 'Post-Creation Tasks',
@@ -1233,30 +1293,34 @@ class SupplierEventManagementTest extends TestCase
 
         SupplierTemplateChecklist::create([
             'supplier_template_checklist_group_id' => $templateGroup->id,
-            'name' => 'Task 2 weeks after creation',
-            'description' => 'Complete 2 weeks after checklist creation',
-            'frequency_days' => 2,
+            'name' => 'Task 1 week after creation',
+            'description' => 'Complete 1 week after event creation',
+            'frequency_days' => 1,
             'frequency_type' => ChecklistFrequencyTypeEnum::Weeks->value,
             'frequency_anchor' => FrequencyAnchorEnum::AfterCreation->value,
             'created_by' => $this->staff->id,
             'updated_by' => $this->staff->id,
         ]);
 
+        $createdAt = now();
         $eventData = [
             'name' => 'Birthday Party',
             'description' => 'Test event',
-            'status' => 'Pending',
             'eventType' => EventTypeEnum::Birthday->value,
-            'eventDate' => $eventDate->toIso8601String(),
-            'celebrantOne' => [
+            'celebrant' => [
                 'firstName' => 'John',
                 'lastName' => 'Doe',
             ],
-            'address' => [
-                'line1' => '123 Main St',
-                'city' => 'City',
-                'state' => 'State',
-                'zip' => '12345',
+            'segment' => [
+                'date' => $eventDate->format('Y-m-d'),
+                'startTime' => '14:00:00',
+                'endTime' => '18:00:00',
+                'address' => [
+                    'line1' => '123 Main St',
+                    'city' => 'New York',
+                    'state' => 'NY',
+                    'zip' => '10001',
+                ],
             ],
             'clients' => [
                 [
@@ -1267,7 +1331,6 @@ class SupplierEventManagementTest extends TestCase
             ],
         ];
 
-        $createdAt = now();
         $response = $this->withToken($this->token)
             ->postJson('/api/suppliers/events', $eventData);
 
@@ -1277,7 +1340,7 @@ class SupplierEventManagementTest extends TestCase
         $eventGroup = EventChecklistGroup::where('event_id', $event->id)->first();
         $checklist = EventChecklist::where('event_checklist_group_id', $eventGroup->id)->first();
 
-        $expectedDueDate = $createdAt->copy()->addWeeks(2)->format('Y-m-d');
+        $expectedDueDate = now()->addWeeks(1)->format('Y-m-d');
         $this->assertEquals($expectedDueDate, $checklist->due_date->format('Y-m-d'));
     }
 
@@ -1285,7 +1348,6 @@ class SupplierEventManagementTest extends TestCase
     {
         $eventDate = now()->addMonths(6);
 
-        // Create template checklist with AfterCreation anchor
         $templateGroup = SupplierTemplateChecklistGroup::create([
             'supplier_id' => $this->supplier->id,
             'name' => 'Post-Creation Tasks',
@@ -1297,7 +1359,7 @@ class SupplierEventManagementTest extends TestCase
         SupplierTemplateChecklist::create([
             'supplier_template_checklist_group_id' => $templateGroup->id,
             'name' => 'Task 1 month after creation',
-            'description' => 'Complete 1 month after checklist creation',
+            'description' => 'Complete 1 month after event creation',
             'frequency_days' => 1,
             'frequency_type' => ChecklistFrequencyTypeEnum::Months->value,
             'frequency_anchor' => FrequencyAnchorEnum::AfterCreation->value,
@@ -1305,21 +1367,25 @@ class SupplierEventManagementTest extends TestCase
             'updated_by' => $this->staff->id,
         ]);
 
+        $createdAt = now();
         $eventData = [
             'name' => 'Birthday Party',
             'description' => 'Test event',
-            'status' => 'Pending',
             'eventType' => EventTypeEnum::Birthday->value,
-            'eventDate' => $eventDate->toIso8601String(),
-            'celebrantOne' => [
+            'celebrant' => [
                 'firstName' => 'John',
                 'lastName' => 'Doe',
             ],
-            'address' => [
-                'line1' => '123 Main St',
-                'city' => 'City',
-                'state' => 'State',
-                'zip' => '12345',
+            'segment' => [
+                'date' => $eventDate->format('Y-m-d'),
+                'startTime' => '14:00:00',
+                'endTime' => '18:00:00',
+                'address' => [
+                    'line1' => '123 Main St',
+                    'city' => 'New York',
+                    'state' => 'NY',
+                    'zip' => '10001',
+                ],
             ],
             'clients' => [
                 [
@@ -1330,7 +1396,6 @@ class SupplierEventManagementTest extends TestCase
             ],
         ];
 
-        $createdAt = now();
         $response = $this->withToken($this->token)
             ->postJson('/api/suppliers/events', $eventData);
 
@@ -1340,8 +1405,7 @@ class SupplierEventManagementTest extends TestCase
         $eventGroup = EventChecklistGroup::where('event_id', $event->id)->first();
         $checklist = EventChecklist::where('event_checklist_group_id', $eventGroup->id)->first();
 
-        $expectedDueDate = $createdAt->copy()->addMonths(1)->format('Y-m-d');
+        $expectedDueDate = now()->addMonths(1)->format('Y-m-d');
         $this->assertEquals($expectedDueDate, $checklist->due_date->format('Y-m-d'));
     }
 }
-
