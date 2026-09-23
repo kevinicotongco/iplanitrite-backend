@@ -9,7 +9,7 @@ use App\Enums\EventTypeEnum;
 use App\Models\Address;
 use App\Models\Celebrant;
 use App\Models\Event;
-use App\Models\Supplier;
+use App\Models\Account;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -25,7 +25,7 @@ class EventFactory extends Factory
     public function definition(): array
     {
         return [
-            'supplier_id' => Supplier::factory(),
+            'account_id' => Account::factory(),
             'name' => fake()->sentence(3),
             'description' => fake()->paragraph(),
             'status' => fake()->randomElement(EventStatusEnum::cases()),

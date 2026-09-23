@@ -16,49 +16,6 @@ use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
-/**
- * @OA\Schema(
- *     schema="ClientLoginRequest",
- *     type="object",
- *     required={"email", "password"},
- *     @OA\Property(property="email", type="string", format="email", example="client@example.com"),
- *     @OA\Property(property="password", type="string", format="password", example="password123")
- * )
- *
- * @OA\Schema(
- *     schema="ClientLoginResponse",
- *     type="object",
- *     @OA\Property(property="token", type="string", example="eyJ0eXAiOiJKV1QiLCJhbGc..."),
- *     @OA\Property(
- *         property="user",
- *         ref="#/components/schemas/ClientResponse"
- *     )
- * )
- *
- * @OA\Schema(
- *     schema="ClientResponse",
- *     type="object",
- *     @OA\Property(property="id", type="string", format="uuid", example="9d5e8b9a-1234-5678-9abc-def012345678"),
- *     @OA\Property(property="supplier_id", type="string", format="uuid", example="9d5e8b9a-supplier-uuid"),
- *     @OA\Property(property="email", type="string", format="email", example="client@example.com"),
- *     @OA\Property(property="first_name", type="string", example="Alice"),
- *     @OA\Property(property="middle_name", type="string", nullable=true, example="Marie"),
- *     @OA\Property(property="last_name", type="string", example="Johnson"),
- *     @OA\Property(property="profile_picture", type="string", nullable=true, example="9d5e8b9a-picture-uuid"),
- *     @OA\Property(property="address_id", type="string", format="uuid", nullable=true, example="9d5e8b9a-address-uuid"),
- *     @OA\Property(property="contact_number_id", type="string", format="uuid", nullable=true, example="9d5e8b9a-contact-uuid"),
- *     @OA\Property(property="created_at", type="string", format="date-time", example="2024-01-01T12:00:00Z"),
- *     @OA\Property(property="updated_at", type="string", format="date-time", example="2024-01-01T12:00:00Z")
- * )
- *
- * @OA\Schema(
- *     schema="ClientUpdateProfileRequest",
- *     type="object",
- *     @OA\Property(property="avatar", type="string", nullable=true, example="9d5e8b9a-avatar-uuid", description="Document UUID for profile picture"),
- *     @OA\Property(property="first_name", type="string", example="Alice"),
- *     @OA\Property(property="last_name", type="string", example="Johnson")
- * )
- */
 class ClientUserController extends Controller
 {
     /**

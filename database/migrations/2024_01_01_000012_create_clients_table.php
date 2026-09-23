@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('clients', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid('supplier_id');
+            $table->uuid('account_id');
             $table->string('email')->unique();
             $table->string('password');
             $table->string('first_name');
@@ -24,11 +24,11 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            $table->foreign('supplier_id')->references('id')->on('suppliers');
+            $table->foreign('account_id')->references('id')->on('accounts');
             $table->foreign('profile_picture')->references('id')->on('documents');
             $table->foreign('address_id')->references('id')->on('addresses');
             $table->foreign('contact_number_id')->references('id')->on('contact_numbers');
-            // Foreign keys to supplier_staff deferred to separate migration
+            // Foreign keys to staff deferred to separate migration
         });
     }
 

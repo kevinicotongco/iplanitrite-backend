@@ -25,9 +25,9 @@ class Client extends Authenticatable
         'password',
     ];
 
-    public function supplier(): BelongsTo
+    public function account(): BelongsTo
     {
-        return $this->belongsTo(Supplier::class);
+        return $this->belongsTo(Account::class, 'account_id');
     }
 
     public function profilePictureDocument(): BelongsTo
@@ -47,12 +47,12 @@ class Client extends Authenticatable
 
     public function creator(): BelongsTo
     {
-        return $this->belongsTo(Admin::class, 'created_by');
+        return $this->belongsTo(Staff::class, 'created_by');
     }
 
     public function updater(): BelongsTo
     {
-        return $this->belongsTo(Admin::class, 'updated_by');
+        return $this->belongsTo(Staff::class, 'updated_by');
     }
 
     public function events(): BelongsToMany

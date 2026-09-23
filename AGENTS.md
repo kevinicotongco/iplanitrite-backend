@@ -90,8 +90,8 @@ All request bodies must be converted into Request DTOs.
 Examples:
 * AdminLoginRequestDto
 * UpdateAdminProfileRequestDto
-* SupplierStaffLoginRequestDto
-* UpdateSupplierStaffProfileRequestDto
+* StaffLoginRequestDto
+* UpdateStaffProfileRequestDto
 * ClientLoginRequestDto
 * UpdateClientProfileRequestDto
 
@@ -126,7 +126,7 @@ Do not catch exceptions merely to hide them. Allow appropriate exceptions to pro
 
 There are three user types:
 * admin
-* supplier_staff
+* staff
 * clients
 
 JWT must protect all authenticated routes.
@@ -135,7 +135,7 @@ Authorization must be enforced through middleware and/or guards. Do not rely onl
 
 Each route group must only be accessible to its intended user type:
 * /api/admin/* -> Admin only
-* /api/supplier_staff/* -> Supplier staff only
+* /api/accounts/* -> Staff only
 * /api/clients/* -> Clients only
 
 Do not allow one user type to access another user type's protected routes.
@@ -204,7 +204,7 @@ You MUST follow this two-phase workflow strictly:
 PHASE 1: INTERACTIVE SPECIFICATION AUDIT (ONE-BY-ONE CONFIRMATION)
 Do NOT generate implementation code, create files, or run terminal commands immediately. You must perform an interactive audit first:
 * Audit the specification and identify all technical inconsistencies, such as:
-  - Foreign key misalignments (e.g., supplier_id referencing admins instead of suppliers).
+  - Foreign key misalignments (e.g., account_id referencing admins instead of suppliers).
   - Enum value mismatches (e.g., WEEKS in Enum vs WEEK in DTO).
   - HTTP Verb mismatches (e.g., POST vs PUT for profile updates).
   - Sensitive fields leaked inside DTO specs (e.g., password in SupplierStaffResponseDto).

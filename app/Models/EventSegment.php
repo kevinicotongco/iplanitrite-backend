@@ -39,11 +39,11 @@ class EventSegment extends Model
 
     public function creator(): BelongsTo
     {
-        return $this->belongsTo(SupplierStaff::class, 'created_by');
+        return $this->belongsTo(Staff::class, 'created_by');
     }
 
     public function updater(): BelongsTo
     {
-        return $this->belongsTo(SupplierStaff::class, 'updated_by');
+        return $this->belongsTo(Staff::class, 'updated_by');
     }
 }

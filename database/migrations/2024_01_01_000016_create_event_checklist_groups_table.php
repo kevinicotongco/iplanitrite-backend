@@ -18,7 +18,7 @@ return new class extends Migration
             $table->softDeletes();
 
             $table->foreign('event_id')->references('id')->on('events');
-            // Foreign keys to supplier_staff deferred to separate migration
+            // Foreign keys to staff deferred to separate migration
         });
     }
 

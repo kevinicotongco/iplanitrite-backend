@@ -18,15 +18,13 @@ readonly class DocumentService
 
         $path = $file->storeAs('documents', $fileName, 'public');
 
-        $document = Document::create([
+        return Document::create([
             'name' => $fileName,
             'display_name' => $originalName,
             'url' => Storage::disk('public')->url($path),
             'size' => $file->getSize(),
             'mime_type' => $file->getMimeType(),
         ]);
-
-        return $document;
     }
 
     public function deleteFile(string $documentId): bool

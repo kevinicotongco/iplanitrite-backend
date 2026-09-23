@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Models\Client;
-use App\Models\Supplier;
+use App\Models\Account;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -15,7 +15,7 @@ class ClientLoginTest extends TestCase
 {
     use RefreshDatabase;
 
-    private Supplier $supplier;
+    private Account $account;
     private Client $client;
 
     protected function setUp(): void
@@ -23,9 +23,9 @@ class ClientLoginTest extends TestCase
         parent::setUp();
 
         $country = $this->createTestCountry();
-        $this->supplier = Supplier::create([
+        $this->account = Account::create([
             'id' => Str::uuid()->toString(),
-            'name' => 'Test Supplier',
+            'name' => 'Test Account',
             'status' => 'Active',
             'subscription_tier' => 'Free',
             'description' => 'Test Description',
@@ -35,7 +35,7 @@ class ClientLoginTest extends TestCase
 
         $this->client = Client::create([
             'id' => Str::uuid()->toString(),
-            'supplier_id' => $this->supplier->id,
+            'account_id' => $this->account->id,
             'email' => 'client@test.com',
             'password' => Hash::make('password123'),
             'first_name' => 'Test',
@@ -55,7 +55,7 @@ class ClientLoginTest extends TestCase
                 'token',
                 'user' => [
                     'id',
-                    'supplierId',
+                    'accountId',
                     'email',
                     'firstName',
                     'middleName',

@@ -27,7 +27,7 @@ return new class extends Migration
 
             $table->foreign('event_id')->references('id')->on('events')->onDelete('cascade');
             $table->foreign('address_id')->references('id')->on('addresses')->onDelete('set null');
-            // Foreign keys to supplier_staff deferred
+            // Foreign keys to staff deferred
         });
     }
 

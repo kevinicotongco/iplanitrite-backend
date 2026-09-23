@@ -24,7 +24,7 @@ return new class extends Migration
             $table->foreign('profile_picture')->references('id')->on('documents');
             $table->foreign('address_id')->references('id')->on('addresses');
             $table->foreign('contact_number_id')->references('id')->on('contact_numbers');
-            // Foreign keys to supplier_staff deferred to separate migration
+            // Foreign keys to staff deferred to separate migration
         });
     }
 

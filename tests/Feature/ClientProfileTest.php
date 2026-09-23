@@ -6,9 +6,9 @@ namespace Tests\Feature;
 
 use App\Models\Admin;
 use App\Models\Client;
-use App\Models\Supplier;
-use App\Models\SupplierRole;
-use App\Models\SupplierStaff;
+use App\Models\Account;
+use App\Models\AccountRole;
+use App\Models\Staff;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -18,20 +18,20 @@ class ClientProfileTest extends TestCase
 {
     use RefreshDatabase;
 
-    private Supplier $supplier;
+    private Account $ac;
     private Client $client;
     private Admin $admin;
-    private SupplierRole $supplierRole;
-    private SupplierStaff $supplierStaff;
+    private AccountRole $accountRole;
+    private Staff $staff;
 
     protected function setUp(): void
     {
         parent::setUp();
 
         $country = $this->createTestCountry();
-        $this->supplier = Supplier::create([
+        $this->account = Account::create([
             'id' => Str::uuid()->toString(),
-            'name' => 'Test Supplier',
+            'name' => 'Test Account',
             'status' => 'Active',
             'subscription_tier' => 'Free',
             'description' => 'Test Description',
@@ -41,7 +41,7 @@ class ClientProfileTest extends TestCase
 
         $this->client = Client::create([
             'id' => Str::uuid()->toString(),
-            'supplier_id' => $this->supplier->id,
+            'account_id' => $this->account->id,
             'email' => 'client@test.com',
             'password' => Hash::make('password123'),
             'first_name' => 'Test',
@@ -56,16 +56,16 @@ class ClientProfileTest extends TestCase
             'last_name' => 'Admin',
         ]);
 
-        $this->supplierRole = SupplierRole::create([
+        $this->accountRole = AccountRole::create([
             'id' => Str::uuid()->toString(),
-            'supplier_id' => $this->supplier->id,
+            'account_id' => $this->account->id,
             'name' => 'Manager',
         ]);
 
-        $this->supplierStaff = SupplierStaff::create([
+        $this->staff = Staff::create([
             'id' => Str::uuid()->toString(),
-            'supplier_id' => $this->supplier->id,
-            'supplier_role_id' => $this->supplierRole->id,
+            'account_id' => $this->account->id,
+            'account_role_id' => $this->accountRole->id,
             'email' => 'staff@test.com',
             'password' => Hash::make('password123'),
             'first_name' => 'Test',
@@ -81,7 +81,7 @@ class ClientProfileTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonStructure([
                 'id',
-                'supplierId',
+                'accountId',
                 'email',
                 'firstName',
                 'middleName',
@@ -113,9 +113,9 @@ class ClientProfileTest extends TestCase
         $response->assertStatus(401);
     }
 
-    public function test_supplier_staff_cannot_view_client_profile(): void
+    public function test_staff_cannot_view_client_profile(): void
     {
-        $response = $this->actingAs($this->supplierStaff, 'supplier_staff')
+        $response = $this->actingAs($this->staff, 'staff')
             ->getJson('/api/clients/profile');
 
         $response->assertStatus(401);

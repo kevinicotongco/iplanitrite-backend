@@ -21,7 +21,7 @@ return new class extends Migration
             $table->softDeletes();
 
             $table->foreign('event_checklist_group_id')->references('id')->on('event_checklist_groups');
-            // Foreign keys to supplier_staff deferred to separate migration
+            // Foreign keys to staff deferred to separate migration
         });
     }
 

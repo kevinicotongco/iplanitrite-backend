@@ -11,7 +11,7 @@ return new class extends Migration
     {
         Schema::create('events', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid('supplier_id');
+            $table->uuid('account_id');
             $table->string('name');
             $table->text('description')->nullable();
             $table->string('status')->default(EventStatusEnum::Pending->value);
@@ -23,10 +23,10 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            $table->foreign('supplier_id')->references('id')->on('suppliers');
+            $table->foreign('account_id')->references('id')->on('accounts');
             $table->foreign('celebrant_one_id')->references('id')->on('celebrants');
             $table->foreign('celebrant_two_id')->references('id')->on('celebrants');
-            // Foreign keys to supplier_staff deferred to separate migration
+            // Foreign keys to staff deferred to separate migration
         });
     }
 

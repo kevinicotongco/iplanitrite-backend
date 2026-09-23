@@ -28,9 +28,9 @@ class Event extends Model
         'event_type' => EventTypeEnum::class,
     ];
 
-    public function supplier(): BelongsTo
+    public function account(): BelongsTo
     {
-        return $this->belongsTo(Supplier::class);
+        return $this->belongsTo(Account::class, 'account_id');
     }
 
     public function celebrantOne(): BelongsTo
@@ -45,12 +45,12 @@ class Event extends Model
 
     public function creator(): BelongsTo
     {
-        return $this->belongsTo(Admin::class, 'created_by');
+        return $this->belongsTo(Staff::class, 'created_by');
     }
 
     public function updater(): BelongsTo
     {
-        return $this->belongsTo(Admin::class, 'updated_by');
+        return $this->belongsTo(Staff::class, 'updated_by');
     }
 
     public function clients(): BelongsToMany

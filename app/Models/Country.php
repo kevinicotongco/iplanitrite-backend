@@ -29,8 +29,8 @@ class Country extends Model
         return $this->hasMany(Address::class);
     }
 
-    public function suppliers(): HasMany
+    public function accounts(): HasMany
     {
-        return $this->hasMany(Supplier::class);
+        return $this->hasMany(Account::class, 'country_id');
     }
 }

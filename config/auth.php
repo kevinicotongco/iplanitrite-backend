@@ -46,9 +46,9 @@ return [
             'provider' => 'admins',
         ],
 
-        'supplier_staff' => [
+        'staff' => [
             'driver' => 'sanctum',
-            'provider' => 'supplier_staff',
+            'provider' => 'staff',
         ],
 
         'client' => [
@@ -85,9 +85,9 @@ return [
             'model' => App\Models\Admin::class,
         ],
 
-        'supplier_staff' => [
+        'staff' => [
             'driver' => 'eloquent',
-            'model' => App\Models\SupplierStaff::class,
+            'model' => App\Models\Staff::class,
         ],
 
         'clients' => [
@@ -130,8 +130,8 @@ return [
             'throttle' => 60,
         ],
 
-        'supplier_staff' => [
-            'provider' => 'supplier_staff',
+        'staff' => [
+            'provider' => 'staff',
             'table' => 'password_reset_tokens',
             'expire' => 60,
             'throttle' => 60,

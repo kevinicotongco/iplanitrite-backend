@@ -6,7 +6,7 @@ namespace App\Enums;
 
 enum ResponsibilityTypeEnum: string
 {
-    case SupplierStaff = 'SupplierStaff';
+    case Staff = 'Staff';
     case Client = 'Client';
     case Both = 'Both';
 }

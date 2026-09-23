@@ -14,15 +14,15 @@ final readonly class EventWithRelationsData
      * @param array<EventSegmentData> $primarySegments
      */
     public function __construct(
-        public string $id,
-        public string $supplierId,
-        public string $name,
-        public ?string $description,
-        public EventStatusEnum $status,
-        public EventTypeEnum $eventType,
+        public string                      $id,
+        public string                      $accountId,
+        public string                      $name,
+        public ?string                     $description,
+        public EventStatusEnum             $status,
+        public EventTypeEnum               $eventType,
         public ?CelebrantWithRelationsData $celebrantOne,
         public ?CelebrantWithRelationsData $celebrantTwo,
-        public array $primarySegments,
+        public array                       $primarySegments,
     ) {}
 
     public static function fromModel(Event $event): self
@@ -33,7 +33,7 @@ final readonly class EventWithRelationsData
 
         return new self(
             id: $event->id,
-            supplierId: $event->supplier_id,
+            accountId: $event->account_id,
             name: $event->name,
             description: $event->description,
             status: $event->status,

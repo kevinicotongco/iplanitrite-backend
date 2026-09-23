@@ -13,15 +13,15 @@ readonly class EventResponseDto
      * @param array<EventSegmentResponseDto> $primarySegments
      */
     public function __construct(
-        public string $id,
-        public string $supplierId,
-        public string $name,
-        public ?string $description,
-        public string $status,
-        public string $eventType,
+        public string                $id,
+        public string                $accountId,
+        public string                $name,
+        public ?string               $description,
+        public string                $status,
+        public string                $eventType,
         public ?CelebrantResponseDto $celebrantOne,
         public ?CelebrantResponseDto $celebrantTwo,
-        public array $primarySegments,
+        public array                 $primarySegments,
     ) {}
 
     public static function fromModel(Event $event): self
@@ -32,7 +32,7 @@ readonly class EventResponseDto
 
         return new self(
             id: $event->id,
-            supplierId: $event->supplier_id,
+            accountId: $event->account_id,
             name: $event->name,
             description: $event->description,
             status: $event->status->value,
@@ -66,7 +66,7 @@ readonly class EventResponseDto
 
         return new self(
             id: $eventData->id,
-            supplierId: $eventData->supplierId,
+            accountId: $eventData->accountId,
             name: $eventData->name,
             description: $eventData->description,
             status: $eventData->status->value,
@@ -88,7 +88,7 @@ readonly class EventResponseDto
     {
         return [
             'id' => $this->id,
-            'supplierId' => $this->supplierId,
+            'accountId' => $this->accountId,
             'name' => $this->name,
             'description' => $this->description,
             'status' => $this->status,

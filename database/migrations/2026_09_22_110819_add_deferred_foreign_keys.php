@@ -11,76 +11,76 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Add foreign keys from suppliers to supplier_staff
-        Schema::table('suppliers', function (Blueprint $table) {
-            $table->foreign('created_by')->references('id')->on('supplier_staff');
-            $table->foreign('updated_by')->references('id')->on('supplier_staff');
+        // Add foreign keys from accounts to staff
+        Schema::table('accounts', function (Blueprint $table) {
+            $table->foreign('created_by')->references('id')->on('staff');
+            $table->foreign('updated_by')->references('id')->on('staff');
         });
 
-        // Add foreign keys from supplier_roles to supplier_staff
-        Schema::table('supplier_roles', function (Blueprint $table) {
-            $table->foreign('created_by')->references('id')->on('supplier_staff');
-            $table->foreign('updated_by')->references('id')->on('supplier_staff');
+        // Add foreign keys from account_roles to staff
+        Schema::table('account_roles', function (Blueprint $table) {
+            $table->foreign('created_by')->references('id')->on('staff');
+            $table->foreign('updated_by')->references('id')->on('staff');
         });
 
-        // Add foreign keys from supplier_role_permissions to supplier_staff
-        Schema::table('supplier_role_permissions', function (Blueprint $table) {
-            $table->foreign('created_by')->references('id')->on('supplier_staff');
-            $table->foreign('updated_by')->references('id')->on('supplier_staff');
+        // Add foreign keys from account_role_permissions to staff
+        Schema::table('account_role_permissions', function (Blueprint $table) {
+            $table->foreign('created_by')->references('id')->on('staff');
+            $table->foreign('updated_by')->references('id')->on('staff');
         });
 
-        // Add self-referencing foreign keys to supplier_staff
-        Schema::table('supplier_staff', function (Blueprint $table) {
-            $table->foreign('created_by')->references('id')->on('supplier_staff');
-            $table->foreign('updated_by')->references('id')->on('supplier_staff');
+        // Add self-referencing foreign keys to staff
+        Schema::table('staff', function (Blueprint $table) {
+            $table->foreign('created_by')->references('id')->on('staff');
+            $table->foreign('updated_by')->references('id')->on('staff');
         });
 
-        // Add foreign keys from supplier_template_checklist_groups to supplier_staff
-        Schema::table('supplier_template_checklist_groups', function (Blueprint $table) {
-            $table->foreign('created_by')->references('id')->on('supplier_staff');
-            $table->foreign('updated_by')->references('id')->on('supplier_staff');
+        // Add foreign keys from account_template_checklist_groups to staff
+        Schema::table('account_template_checklist_groups', function (Blueprint $table) {
+            $table->foreign('created_by')->references('id')->on('staff');
+            $table->foreign('updated_by')->references('id')->on('staff');
         });
 
-        // Add foreign keys from supplier_template_checklists to supplier_staff
-        Schema::table('supplier_template_checklists', function (Blueprint $table) {
-            $table->foreign('created_by')->references('id')->on('supplier_staff');
-            $table->foreign('updated_by')->references('id')->on('supplier_staff');
+        // Add foreign keys from account_template_checklists to staff
+        Schema::table('account_template_checklists', function (Blueprint $table) {
+            $table->foreign('created_by')->references('id')->on('staff');
+            $table->foreign('updated_by')->references('id')->on('staff');
         });
 
-        // Add foreign keys from clients to supplier_staff
+        // Add foreign keys from clients to staff
         Schema::table('clients', function (Blueprint $table) {
-            $table->foreign('created_by')->references('id')->on('supplier_staff');
-            $table->foreign('updated_by')->references('id')->on('supplier_staff');
+            $table->foreign('created_by')->references('id')->on('staff');
+            $table->foreign('updated_by')->references('id')->on('staff');
         });
 
-        // Add foreign keys from celebrants to supplier_staff
+        // Add foreign keys from celebrants to staff
         Schema::table('celebrants', function (Blueprint $table) {
-            $table->foreign('created_by')->references('id')->on('supplier_staff');
-            $table->foreign('updated_by')->references('id')->on('supplier_staff');
+            $table->foreign('created_by')->references('id')->on('staff');
+            $table->foreign('updated_by')->references('id')->on('staff');
         });
 
-        // Add foreign keys from events to supplier_staff
+        // Add foreign keys from events to staff
         Schema::table('events', function (Blueprint $table) {
-            $table->foreign('created_by')->references('id')->on('supplier_staff');
-            $table->foreign('updated_by')->references('id')->on('supplier_staff');
+            $table->foreign('created_by')->references('id')->on('staff');
+            $table->foreign('updated_by')->references('id')->on('staff');
         });
 
-        // Add foreign keys from event_clients to supplier_staff
+        // Add foreign keys from event_clients to staff
         Schema::table('event_clients', function (Blueprint $table) {
-            $table->foreign('created_by')->references('id')->on('supplier_staff');
-            $table->foreign('updated_by')->references('id')->on('supplier_staff');
+            $table->foreign('created_by')->references('id')->on('staff');
+            $table->foreign('updated_by')->references('id')->on('staff');
         });
 
-        // Add foreign keys from event_checklist_groups to supplier_staff
+        // Add foreign keys from event_checklist_groups to staff
         Schema::table('event_checklist_groups', function (Blueprint $table) {
-            $table->foreign('created_by')->references('id')->on('supplier_staff');
-            $table->foreign('updated_by')->references('id')->on('supplier_staff');
+            $table->foreign('created_by')->references('id')->on('staff');
+            $table->foreign('updated_by')->references('id')->on('staff');
         });
 
-        // Add foreign keys from event_checklists to supplier_staff
+        // Add foreign keys from event_checklists to staff
         Schema::table('event_checklists', function (Blueprint $table) {
-            $table->foreign('created_by')->references('id')->on('supplier_staff');
-            $table->foreign('updated_by')->references('id')->on('supplier_staff');
+            $table->foreign('created_by')->references('id')->on('staff');
+            $table->foreign('updated_by')->references('id')->on('staff');
         });
     }
 
@@ -120,32 +120,32 @@ return new class extends Migration
             $table->dropForeign(['updated_by']);
         });
 
-        Schema::table('supplier_template_checklists', function (Blueprint $table) {
+        Schema::table('account_template_checklists', function (Blueprint $table) {
             $table->dropForeign(['created_by']);
             $table->dropForeign(['updated_by']);
         });
 
-        Schema::table('supplier_template_checklist_groups', function (Blueprint $table) {
+        Schema::table('account_template_checklist_groups', function (Blueprint $table) {
             $table->dropForeign(['created_by']);
             $table->dropForeign(['updated_by']);
         });
 
-        Schema::table('supplier_staff', function (Blueprint $table) {
+        Schema::table('staff', function (Blueprint $table) {
             $table->dropForeign(['created_by']);
             $table->dropForeign(['updated_by']);
         });
 
-        Schema::table('supplier_role_permissions', function (Blueprint $table) {
+        Schema::table('account_role_permissions', function (Blueprint $table) {
             $table->dropForeign(['created_by']);
             $table->dropForeign(['updated_by']);
         });
 
-        Schema::table('supplier_roles', function (Blueprint $table) {
+        Schema::table('account_roles', function (Blueprint $table) {
             $table->dropForeign(['created_by']);
             $table->dropForeign(['updated_by']);
         });
 
-        Schema::table('suppliers', function (Blueprint $table) {
+        Schema::table('accounts', function (Blueprint $table) {
             $table->dropForeign(['created_by']);
             $table->dropForeign(['updated_by']);
         });

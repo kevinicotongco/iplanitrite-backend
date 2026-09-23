@@ -9,14 +9,14 @@ use App\Models\Client;
 readonly class ClientResponseDto
 {
     public function __construct(
-        public string $id,
-        public string $supplierId,
-        public string $email,
-        public string $firstName,
-        public ?string $middleName,
-        public string $lastName,
-        public ?DocumentResponseDto $profilePicture,
-        public ?AddressResponseDto $address,
+        public string                    $id,
+        public string                    $accountId,
+        public string                    $email,
+        public string                    $firstName,
+        public ?string                   $middleName,
+        public string                    $lastName,
+        public ?DocumentResponseDto      $profilePicture,
+        public ?AddressResponseDto       $address,
         public ?ContactNumberResponseDto $contactNumber,
     ) {}
 
@@ -24,7 +24,7 @@ readonly class ClientResponseDto
     {
         return new self(
             id: $client->id,
-            supplierId: $client->supplier_id,
+            accountId: $client->account_id,
             email: $client->email,
             firstName: $client->first_name,
             middleName: $client->middle_name,
@@ -48,7 +48,7 @@ readonly class ClientResponseDto
     {
         return [
             'id' => $this->id,
-            'supplierId' => $this->supplierId,
+            'accountId' => $this->accountId,
             'email' => $this->email,
             'firstName' => $this->firstName,
             'middleName' => $this->middleName,

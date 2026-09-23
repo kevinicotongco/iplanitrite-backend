@@ -6,6 +6,6 @@ namespace App\Enums;
 
 enum ChecklistTypeEnum: string
 {
-    case Supplier = 'Supplier';
+    case Account = 'Account';
     case General = 'General';
 }

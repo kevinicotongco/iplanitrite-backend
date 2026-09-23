@@ -19,12 +19,12 @@ class CreateStaffRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'email', 'unique:supplier_staff,email', 'max:255'],
+            'email' => ['required', 'email', 'unique:staff,email', 'max:255'],
             'firstName' => ['required', 'string', 'max:255'],
             'middleName' => ['nullable', 'string', 'max:255'],
             'lastName' => ['required', 'string', 'max:255'],
             'contactNumber' => ['nullable', 'string', 'max:50'],
-            'role' => ['required', 'uuid', 'exists:supplier_roles,id'],
+            'role' => ['required', 'uuid', 'exists:account_roles,id'],
 
             'address' => ['nullable', 'array'],
             'address.line1' => ['required_with:address', 'string', 'max:255'],
