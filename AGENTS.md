@@ -135,7 +135,7 @@ Authorization must be enforced through middleware and/or guards. Do not rely onl
 
 Each route group must only be accessible to its intended user type:
 * /api/admin/* -> Admin only
-* /api/accounts/* -> Staff only
+* /api/staff/* -> Staff only
 * /api/clients/* -> Clients only
 
 Do not allow one user type to access another user type's protected routes.
