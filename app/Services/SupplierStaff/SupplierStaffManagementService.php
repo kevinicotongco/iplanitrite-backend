@@ -45,7 +45,7 @@ readonly class SupplierStaffManagementService
         $contactNumberId = null;
 
         if ($dto->address) {
-            $address = $this->addressService->createAddress($dto->address);
+            $address = $this->addressService->createAddress($dto->address, $countryId);
             $addressId = $address->id;
         }
 
@@ -95,9 +95,9 @@ readonly class SupplierStaffManagementService
 
         if ($dto->address) {
             if ($addressId) {
-                $this->addressService->updateAddress($staff->address, $dto->address);
+                $this->addressService->updateAddress($staff->address, $dto->address, $countryId);
             } else {
-                $address = $this->addressService->createAddress($dto->address);
+                $address = $this->addressService->createAddress($dto->address, $countryId);
                 $addressId = $address->id;
             }
         }
