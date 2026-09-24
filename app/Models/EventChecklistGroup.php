@@ -29,16 +29,6 @@ class EventChecklistGroup extends Model
         return $this->belongsTo(Event::class);
     }
 
-    public function creator(): BelongsTo
-    {
-        return $this->belongsTo(Admin::class, 'created_by');
-    }
-
-    public function updater(): BelongsTo
-    {
-        return $this->belongsTo(Admin::class, 'updated_by');
-    }
-
     public function checklists(): HasMany
     {
         return $this->hasMany(EventChecklist::class);

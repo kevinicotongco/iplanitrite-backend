@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Enums\ChecklistGroupTypeEnum;
 use App\Models\Account;
 use App\Models\AccountRole;
 use App\Models\AccountTemplateChecklist;
@@ -64,10 +65,8 @@ class StaffAccountTemplateChecklistManagementTest extends TestCase
             'account_id' => $this->account->id,
             'name' => 'Test Group',
             'event_type' => 'Wedding',
-            'checklist_type' => 'Supplier',
+            'checklist_type' => ChecklistGroupTypeEnum::General->value,
             'sort_order' => 1,
-            'created_by' => $this->staff->id,
-            'updated_by' => $this->staff->id,
         ]);
 
         $contactNumber = ContactNumber::create([
@@ -126,8 +125,6 @@ class StaffAccountTemplateChecklistManagementTest extends TestCase
             'account_template_checklist_group_id' => $this->group->id,
             'name' => 'First Checklist',
             'sort_order' => 1,
-            'created_by' => $this->staff->id,
-            'updated_by' => $this->staff->id,
         ]);
 
         $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
@@ -150,8 +147,6 @@ class StaffAccountTemplateChecklistManagementTest extends TestCase
             'account_template_checklist_group_id' => $this->group->id,
             'name' => 'Original Name',
             'sort_order' => 1,
-            'created_by' => $this->staff->id,
-            'updated_by' => $this->staff->id,
         ]);
 
         $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
@@ -174,8 +169,6 @@ class StaffAccountTemplateChecklistManagementTest extends TestCase
             'account_template_checklist_group_id' => $this->group->id,
             'name' => 'Test Checklist',
             'sort_order' => 1,
-            'created_by' => $this->staff->id,
-            'updated_by' => $this->staff->id,
         ]);
 
         $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
@@ -202,8 +195,6 @@ class StaffAccountTemplateChecklistManagementTest extends TestCase
             'account_template_checklist_group_id' => $this->group->id,
             'name' => 'Test Checklist',
             'sort_order' => 1,
-            'created_by' => $this->staff->id,
-            'updated_by' => $this->staff->id,
         ]);
 
         $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
@@ -221,17 +212,25 @@ class StaffAccountTemplateChecklistManagementTest extends TestCase
 
     public function test_staff_can_update_checklist_supplier(): void
     {
+        // Create a Supplier type group
+        $supplierGroup = AccountTemplateChecklistGroup::create([
+            'id' => Str::uuid()->toString(),
+            'account_id' => $this->account->id,
+            'name' => 'Supplier Group',
+            'event_type' => 'Wedding',
+            'checklist_type' => ChecklistGroupTypeEnum::Supplier->value,
+            'sort_order' => 2,
+        ]);
+
         $checklist = AccountTemplateChecklist::create([
             'id' => Str::uuid()->toString(),
-            'account_template_checklist_group_id' => $this->group->id,
+            'account_template_checklist_group_id' => $supplierGroup->id,
             'name' => 'Test Checklist',
             'sort_order' => 1,
-            'created_by' => $this->staff->id,
-            'updated_by' => $this->staff->id,
         ]);
 
         $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
-            ->putJson('/api/staff/account-template-checklist-groups/' . $this->group->id . '/account-template-checklists/' . $checklist->id . '/supplier', [
+            ->putJson('/api/staff/account-template-checklist-groups/' . $supplierGroup->id . '/account-template-checklists/' . $checklist->id . '/supplier', [
                 'supplierId' => $this->supplier->id,
             ]);
 
@@ -250,10 +249,8 @@ class StaffAccountTemplateChecklistManagementTest extends TestCase
             'account_id' => $this->account->id,
             'name' => 'General Group',
             'event_type' => 'Wedding',
-            'checklist_type' => 'General',
+            'checklist_type' => ChecklistGroupTypeEnum::General->value,
             'sort_order' => 1,
-            'created_by' => $this->staff->id,
-            'updated_by' => $this->staff->id,
         ]);
 
         $checklist = AccountTemplateChecklist::create([
@@ -261,8 +258,6 @@ class StaffAccountTemplateChecklistManagementTest extends TestCase
             'account_template_checklist_group_id' => $generalGroup->id,
             'name' => 'Test Checklist',
             'sort_order' => 1,
-            'created_by' => $this->staff->id,
-            'updated_by' => $this->staff->id,
         ]);
 
         $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
@@ -280,8 +275,6 @@ class StaffAccountTemplateChecklistManagementTest extends TestCase
             'account_template_checklist_group_id' => $this->group->id,
             'name' => 'Checklist 1',
             'sort_order' => 1,
-            'created_by' => $this->staff->id,
-            'updated_by' => $this->staff->id,
         ]);
 
         $checklist2 = AccountTemplateChecklist::create([
@@ -289,8 +282,6 @@ class StaffAccountTemplateChecklistManagementTest extends TestCase
             'account_template_checklist_group_id' => $this->group->id,
             'name' => 'Checklist 2',
             'sort_order' => 2,
-            'created_by' => $this->staff->id,
-            'updated_by' => $this->staff->id,
         ]);
 
         $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
@@ -319,8 +310,6 @@ class StaffAccountTemplateChecklistManagementTest extends TestCase
             'account_template_checklist_group_id' => $this->group->id,
             'name' => 'Test Checklist',
             'sort_order' => 1,
-            'created_by' => $this->staff->id,
-            'updated_by' => $this->staff->id,
         ]);
 
         $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
@@ -349,8 +338,6 @@ class StaffAccountTemplateChecklistManagementTest extends TestCase
             'account_template_checklist_group_id' => $this->group->id,
             'name' => 'Test Checklist',
             'sort_order' => 1,
-            'created_by' => $this->staff->id,
-            'updated_by' => $this->staff->id,
         ]);
 
         $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
@@ -403,10 +390,8 @@ class StaffAccountTemplateChecklistManagementTest extends TestCase
             'account_id' => $otherAccount->id,
             'name' => 'Other Group',
             'event_type' => 'Wedding',
-            'checklist_type' => 'General',
+            'checklist_type' => ChecklistGroupTypeEnum::General->value,
             'sort_order' => 1,
-            'created_by' => $otherStaff->id,
-            'updated_by' => $otherStaff->id,
         ]);
 
         $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
@@ -451,10 +436,8 @@ class StaffAccountTemplateChecklistManagementTest extends TestCase
             'account_id' => $otherAccount->id,
             'name' => 'Other Group',
             'event_type' => 'Wedding',
-            'checklist_type' => 'General',
+            'checklist_type' => ChecklistGroupTypeEnum::General->value,
             'sort_order' => 1,
-            'created_by' => $otherStaff->id,
-            'updated_by' => $otherStaff->id,
         ]);
 
         $otherChecklist = AccountTemplateChecklist::create([
@@ -462,8 +445,6 @@ class StaffAccountTemplateChecklistManagementTest extends TestCase
             'account_template_checklist_group_id' => $otherGroup->id,
             'name' => 'Other Checklist',
             'sort_order' => 1,
-            'created_by' => $otherStaff->id,
-            'updated_by' => $otherStaff->id,
         ]);
 
         $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
@@ -508,10 +489,8 @@ class StaffAccountTemplateChecklistManagementTest extends TestCase
             'account_id' => $otherAccount->id,
             'name' => 'Other Group',
             'event_type' => 'Wedding',
-            'checklist_type' => 'General',
+            'checklist_type' => ChecklistGroupTypeEnum::General->value,
             'sort_order' => 1,
-            'created_by' => $otherStaff->id,
-            'updated_by' => $otherStaff->id,
         ]);
 
         $otherChecklist = AccountTemplateChecklist::create([
@@ -519,8 +498,6 @@ class StaffAccountTemplateChecklistManagementTest extends TestCase
             'account_template_checklist_group_id' => $otherGroup->id,
             'name' => 'Other Checklist',
             'sort_order' => 1,
-            'created_by' => $otherStaff->id,
-            'updated_by' => $otherStaff->id,
         ]);
 
         $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
@@ -536,6 +513,16 @@ class StaffAccountTemplateChecklistManagementTest extends TestCase
 
     public function test_staff_cannot_assign_supplier_from_other_account_to_checklist(): void
     {
+        // Create a Supplier type group for this test
+        $supplierGroup = AccountTemplateChecklistGroup::create([
+            'id' => Str::uuid()->toString(),
+            'account_id' => $this->account->id,
+            'name' => 'Supplier Group',
+            'event_type' => 'Wedding',
+            'checklist_type' => ChecklistGroupTypeEnum::Supplier->value,
+            'sort_order' => 2,
+        ]);
+
         $country = $this->createTestCountry();
         $otherAccount = Account::create([
             'id' => Str::uuid()->toString(),
@@ -573,15 +560,13 @@ class StaffAccountTemplateChecklistManagementTest extends TestCase
 
         $checklist = AccountTemplateChecklist::create([
             'id' => Str::uuid()->toString(),
-            'account_template_checklist_group_id' => $this->group->id,
+            'account_template_checklist_group_id' => $supplierGroup->id,
             'name' => 'Test Checklist',
             'sort_order' => 1,
-            'created_by' => $this->staff->id,
-            'updated_by' => $this->staff->id,
         ]);
 
         $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
-            ->putJson('/api/staff/account-template-checklist-groups/' . $this->group->id . '/account-template-checklists/' . $checklist->id . '/supplier', [
+            ->putJson('/api/staff/account-template-checklist-groups/' . $supplierGroup->id . '/account-template-checklists/' . $checklist->id . '/supplier', [
                 'supplierId' => $otherSupplier->id,
             ]);
 

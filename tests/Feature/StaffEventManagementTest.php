@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Enums\ChecklistFrequencyTypeEnum;
+use App\Enums\ChecklistGroupTypeEnum;
 use App\Enums\EventStatusEnum;
 use App\Enums\EventTypeEnum;
 use App\Enums\FrequencyAnchorEnum;
@@ -229,15 +230,11 @@ class StaffEventManagementTest extends TestCase
             'account_id' => $this->account->id,
             'event_type' => 'Birthday',
             'status' => 'Pending',
-            'created_by' => $this->staff->id,
-            'updated_by' => $this->staff->id,
         ]);
 
         $this->assertDatabaseHas('celebrants', [
             'first_name' => 'John',
             'last_name' => 'Doe',
-            'created_by' => $this->staff->id,
-            'updated_by' => $this->staff->id,
         ]);
 
         $this->assertDatabaseHas('event_segments', [
@@ -248,8 +245,6 @@ class StaffEventManagementTest extends TestCase
         $this->assertDatabaseHas('clients', [
             'email' => 'client1@example.com',
             'account_id' => $this->account->id,
-            'created_by' => $this->staff->id,
-            'updated_by' => $this->staff->id,
         ]);
     }
 
@@ -563,7 +558,6 @@ class StaffEventManagementTest extends TestCase
             'id' => $event->id,
             'name' => 'Updated Name',
             'status' => EventStatusEnum::Ongoing->value,
-            'updated_by' => $this->staff->id,
         ]);
     }
 
@@ -771,8 +765,6 @@ class StaffEventManagementTest extends TestCase
                 'status' => EventStatusEnum::Pending,
                 'event_type' => EventTypeEnum::Wedding,
                 'celebrant_one_id' => Str::uuid()->toString(),
-                'created_by' => $admin->id,
-                'updated_by' => $this->staff->id,
             ]);
         } catch (QueryException $e) {
             $this->assertStringContainsString('foreign key constraint', $e->getMessage());
@@ -803,8 +795,6 @@ class StaffEventManagementTest extends TestCase
                 'status' => EventStatusEnum::Pending,
                 'event_type' => EventTypeEnum::Birthday,
                 'celebrant_one_id' => Str::uuid()->toString(),
-                'created_by' => $client->id,
-                'updated_by' => $this->staff->id,
             ]);
         } catch (QueryException $e) {
             $this->assertStringContainsString('foreign key constraint', $e->getMessage());
@@ -820,14 +810,10 @@ class StaffEventManagementTest extends TestCase
 
         $event = Event::factory()->create([
             'account_id' => $this->account->id,
-            'created_by' => $validStaffId,
-            'updated_by' => $validStaffId,
         ]);
 
         $this->assertDatabaseHas('events', [
             'id' => $event->id,
-            'created_by' => $validStaffId,
-            'updated_by' => $validStaffId,
         ]);
     }
 
@@ -840,14 +826,17 @@ class StaffEventManagementTest extends TestCase
             'account_id' => $this->account->id,
             'name' => 'Birthday Checklist',
             'event_type' => EventTypeEnum::Birthday,
+            'checklist_type' => ChecklistGroupTypeEnum::General,
+            'sort_order' => 1,
         ]);
 
         $template1 = AccountTemplateChecklist::create([
             'id' => Str::uuid()->toString(),
             'account_template_checklist_group_id' => $templateGroup->id,
             'name' => 'Book venue',
+            'sort_order' => 1,
             'description' => 'Book the party venue',
-            'frequency_days' => 30,
+            'frequency_value' => 30,
             'frequency_type' => ChecklistFrequencyTypeEnum::Days->value,
             'frequency_anchor' => FrequencyAnchorEnum::BeforeEvent->value,
         ]);
@@ -856,8 +845,9 @@ class StaffEventManagementTest extends TestCase
             'id' => Str::uuid()->toString(),
             'account_template_checklist_group_id' => $templateGroup->id,
             'name' => 'Send thank you cards',
+            'sort_order' => 1,
             'description' => 'Send thank you notes',
-            'frequency_days' => 7,
+            'frequency_value' => 7,
             'frequency_type' => ChecklistFrequencyTypeEnum::Days->value,
             'frequency_anchor' => FrequencyAnchorEnum::AfterCreation->value,
         ]);
@@ -929,13 +919,16 @@ class StaffEventManagementTest extends TestCase
             'account_id' => $this->account->id,
             'name' => 'Birthday Tasks',
             'event_type' => EventTypeEnum::Birthday,
+            'checklist_type' => ChecklistGroupTypeEnum::General,
+            'sort_order' => 1,
         ]);
 
         AccountTemplateChecklist::create([
             'id' => Str::uuid()->toString(),
             'account_template_checklist_group_id' => $birthdayGroup->id,
             'name' => 'Birthday Task',
-            'frequency_days' => -7,
+            'sort_order' => 1,
+            'frequency_value' => -7,
         ]);
 
         $weddingGroup = AccountTemplateChecklistGroup::create([
@@ -943,13 +936,16 @@ class StaffEventManagementTest extends TestCase
             'account_id' => $this->account->id,
             'name' => 'Wedding Tasks',
             'event_type' => EventTypeEnum::Wedding,
+            'checklist_type' => ChecklistGroupTypeEnum::General,
+            'sort_order' => 1,
         ]);
 
         AccountTemplateChecklist::create([
             'id' => Str::uuid()->toString(),
             'account_template_checklist_group_id' => $weddingGroup->id,
             'name' => 'Wedding Task',
-            'frequency_days' => -14,
+            'sort_order' => 1,
+            'frequency_value' => -14,
         ]);
 
         $eventData = [
@@ -1025,19 +1021,18 @@ class StaffEventManagementTest extends TestCase
             'account_id' => $this->account->id,
             'name' => 'Pre-Event Tasks',
             'event_type' => EventTypeEnum::Birthday,
-            'created_by' => $this->staff->id,
-            'updated_by' => $this->staff->id,
+            'checklist_type' => ChecklistGroupTypeEnum::General,
+            'sort_order' => 1,
         ]);
 
         AccountTemplateChecklist::create([
             'account_template_checklist_group_id' => $templateGroup->id,
             'name' => 'Task 7 days before',
             'description' => 'Complete 7 days before event',
-            'frequency_days' => 7,
+            'sort_order' => 1,
+            'frequency_value' => 7,
             'frequency_type' => ChecklistFrequencyTypeEnum::Days->value,
             'frequency_anchor' => FrequencyAnchorEnum::BeforeEvent->value,
-            'created_by' => $this->staff->id,
-            'updated_by' => $this->staff->id,
         ]);
 
         $createdAt = now();
@@ -1090,19 +1085,18 @@ class StaffEventManagementTest extends TestCase
             'account_id' => $this->account->id,
             'name' => 'Pre-Event Tasks',
             'event_type' => EventTypeEnum::Birthday,
-            'created_by' => $this->staff->id,
-            'updated_by' => $this->staff->id,
+            'checklist_type' => ChecklistGroupTypeEnum::General,
+            'sort_order' => 1,
         ]);
 
         AccountTemplateChecklist::create([
             'account_template_checklist_group_id' => $templateGroup->id,
             'name' => 'Task 2 weeks before',
             'description' => 'Complete 2 weeks before event',
-            'frequency_days' => 2,
+            'sort_order' => 1,
+            'frequency_value' => 2,
             'frequency_type' => ChecklistFrequencyTypeEnum::Weeks->value,
             'frequency_anchor' => FrequencyAnchorEnum::BeforeEvent->value,
-            'created_by' => $this->staff->id,
-            'updated_by' => $this->staff->id,
         ]);
 
         $createdAt = now();
@@ -1155,19 +1149,18 @@ class StaffEventManagementTest extends TestCase
             'account_id' => $this->account->id,
             'name' => 'Pre-Event Tasks',
             'event_type' => EventTypeEnum::Birthday,
-            'created_by' => $this->staff->id,
-            'updated_by' => $this->staff->id,
+            'checklist_type' => ChecklistGroupTypeEnum::General,
+            'sort_order' => 1,
         ]);
 
         AccountTemplateChecklist::create([
             'account_template_checklist_group_id' => $templateGroup->id,
             'name' => 'Task 2 months before',
             'description' => 'Complete 2 months before event',
-            'frequency_days' => 2,
+            'sort_order' => 1,
+            'frequency_value' => 2,
             'frequency_type' => ChecklistFrequencyTypeEnum::Months->value,
             'frequency_anchor' => FrequencyAnchorEnum::BeforeEvent->value,
-            'created_by' => $this->staff->id,
-            'updated_by' => $this->staff->id,
         ]);
 
         $createdAt = now();
@@ -1220,19 +1213,18 @@ class StaffEventManagementTest extends TestCase
             'account_id' => $this->account->id,
             'name' => 'Post-Creation Tasks',
             'event_type' => EventTypeEnum::Birthday,
-            'created_by' => $this->staff->id,
-            'updated_by' => $this->staff->id,
+            'checklist_type' => ChecklistGroupTypeEnum::General,
+            'sort_order' => 1,
         ]);
 
         AccountTemplateChecklist::create([
             'account_template_checklist_group_id' => $templateGroup->id,
             'name' => 'Task 3 days after creation',
             'description' => 'Complete 3 days after event creation',
-            'frequency_days' => 3,
+            'sort_order' => 1,
+            'frequency_value' => 3,
             'frequency_type' => ChecklistFrequencyTypeEnum::Days->value,
             'frequency_anchor' => FrequencyAnchorEnum::AfterCreation->value,
-            'created_by' => $this->staff->id,
-            'updated_by' => $this->staff->id,
         ]);
 
         $createdAt = now();
@@ -1285,19 +1277,18 @@ class StaffEventManagementTest extends TestCase
             'account_id' => $this->account->id,
             'name' => 'Post-Creation Tasks',
             'event_type' => EventTypeEnum::Birthday,
-            'created_by' => $this->staff->id,
-            'updated_by' => $this->staff->id,
+            'checklist_type' => ChecklistGroupTypeEnum::General,
+            'sort_order' => 1,
         ]);
 
         AccountTemplateChecklist::create([
             'account_template_checklist_group_id' => $templateGroup->id,
             'name' => 'Task 1 week after creation',
             'description' => 'Complete 1 week after event creation',
-            'frequency_days' => 1,
+            'sort_order' => 1,
+            'frequency_value' => 1,
             'frequency_type' => ChecklistFrequencyTypeEnum::Weeks->value,
             'frequency_anchor' => FrequencyAnchorEnum::AfterCreation->value,
-            'created_by' => $this->staff->id,
-            'updated_by' => $this->staff->id,
         ]);
 
         $createdAt = now();
@@ -1350,19 +1341,18 @@ class StaffEventManagementTest extends TestCase
             'account_id' => $this->account->id,
             'name' => 'Post-Creation Tasks',
             'event_type' => EventTypeEnum::Birthday,
-            'created_by' => $this->staff->id,
-            'updated_by' => $this->staff->id,
+            'checklist_type' => ChecklistGroupTypeEnum::General,
+            'sort_order' => 1,
         ]);
 
         AccountTemplateChecklist::create([
             'account_template_checklist_group_id' => $templateGroup->id,
             'name' => 'Task 1 month after creation',
             'description' => 'Complete 1 month after event creation',
-            'frequency_days' => 1,
+            'sort_order' => 1,
+            'frequency_value' => 1,
             'frequency_type' => ChecklistFrequencyTypeEnum::Months->value,
             'frequency_anchor' => FrequencyAnchorEnum::AfterCreation->value,
-            'created_by' => $this->staff->id,
-            'updated_by' => $this->staff->id,
         ]);
 
         $createdAt = now();

@@ -71,8 +71,6 @@ class StaffAccountTemplateChecklistGroupManagementTest extends TestCase
             'event_type' => 'Wedding',
             'checklist_type' => 'Supplier',
             'sort_order' => 1,
-            'created_by' => $this->staff->id,
-            'updated_by' => $this->staff->id,
         ]);
 
         AccountTemplateChecklistGroup::create([
@@ -82,8 +80,6 @@ class StaffAccountTemplateChecklistGroupManagementTest extends TestCase
             'event_type' => 'Wedding',
             'checklist_type' => 'General',
             'sort_order' => 1,
-            'created_by' => $this->staff->id,
-            'updated_by' => $this->staff->id,
         ]);
 
         $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
@@ -121,8 +117,6 @@ class StaffAccountTemplateChecklistGroupManagementTest extends TestCase
             'event_type' => 'Wedding',
             'checklist_type' => 'General',
             'sort_order' => 1,
-            'created_by' => $this->staff->id,
-            'updated_by' => $this->staff->id,
         ]);
 
         $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
@@ -147,8 +141,6 @@ class StaffAccountTemplateChecklistGroupManagementTest extends TestCase
             'event_type' => 'Wedding',
             'checklist_type' => 'General',
             'sort_order' => 1,
-            'created_by' => $this->staff->id,
-            'updated_by' => $this->staff->id,
         ]);
 
         $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
@@ -173,8 +165,6 @@ class StaffAccountTemplateChecklistGroupManagementTest extends TestCase
             'event_type' => 'Wedding',
             'checklist_type' => 'General',
             'sort_order' => 1,
-            'created_by' => $this->staff->id,
-            'updated_by' => $this->staff->id,
         ]);
 
         $group2 = AccountTemplateChecklistGroup::create([
@@ -184,8 +174,6 @@ class StaffAccountTemplateChecklistGroupManagementTest extends TestCase
             'event_type' => 'Wedding',
             'checklist_type' => 'General',
             'sort_order' => 2,
-            'created_by' => $this->staff->id,
-            'updated_by' => $this->staff->id,
         ]);
 
         $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
@@ -216,8 +204,6 @@ class StaffAccountTemplateChecklistGroupManagementTest extends TestCase
             'event_type' => 'Wedding',
             'checklist_type' => 'General',
             'sort_order' => 1,
-            'created_by' => $this->staff->id,
-            'updated_by' => $this->staff->id,
         ]);
 
         $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
@@ -281,8 +267,6 @@ class StaffAccountTemplateChecklistGroupManagementTest extends TestCase
             'event_type' => 'Wedding',
             'checklist_type' => 'General',
             'sort_order' => 1,
-            'created_by' => $otherStaff->id,
-            'updated_by' => $otherStaff->id,
         ]);
 
         $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
@@ -328,8 +312,6 @@ class StaffAccountTemplateChecklistGroupManagementTest extends TestCase
             'event_type' => 'Wedding',
             'checklist_type' => 'General',
             'sort_order' => 1,
-            'created_by' => $otherStaff->id,
-            'updated_by' => $otherStaff->id,
         ]);
 
         $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
@@ -376,8 +358,6 @@ class StaffAccountTemplateChecklistGroupManagementTest extends TestCase
             'event_type' => 'Wedding',
             'checklist_type' => 'General',
             'sort_order' => 1,
-            'created_by' => $otherStaff->id,
-            'updated_by' => $otherStaff->id,
         ]);
 
         $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)

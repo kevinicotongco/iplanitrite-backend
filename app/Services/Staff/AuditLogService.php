@@ -68,6 +68,7 @@ readonly class AuditLogService
 
     /**
      * Get audit information from authenticated user
+     * @throws \Exception
      */
     private function getAuditInfo(): AuditInfoData
     {

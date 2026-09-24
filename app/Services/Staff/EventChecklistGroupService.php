@@ -35,6 +35,7 @@ readonly class EventChecklistGroupService
      * @param string $accountId
      * @param array<string> $clientIds
      * @return void
+     * @throws \Exception
      */
     public function copyTemplateChecklistsToEvent(Event $event, string $accountId, array $clientIds): void
     {

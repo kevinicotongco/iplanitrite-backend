@@ -15,10 +15,21 @@ use App\Models\Staff;
 readonly class AccountTemplateChecklistService
 {
     public function __construct(
-        private Staff $authenticatedUser,
         private AccountTemplateChecklist $checklistModel,
         private AccountTemplateChecklistGroup $groupModel,
     ) {}
+
+    /**
+     * Get the authenticated staff user
+     */
+    private function getAuthenticatedUser(): Staff
+    {
+        $user = auth()->user();
+        if (!$user instanceof Staff) {
+            throw new \Exception('Authenticated user is not a Staff member');
+        }
+        return $user;
+    }
 
     /**
      * Create a new checklist under a group
@@ -30,7 +41,7 @@ readonly class AccountTemplateChecklistService
     public function createChecklist(string $groupId, string $name): void
     {
         $group = $this->groupModel::where('id', $groupId)
-            ->where('account_id', $this->authenticatedUser->account_id)
+            ->where('account_id', $this->getAuthenticatedUser()->account_id)
             ->firstOrFail();
 
         // Get the max sort_order for checklists in this group
@@ -43,8 +54,8 @@ readonly class AccountTemplateChecklistService
             'account_template_checklist_group_id' => $groupId,
             'name' => $name,
             'sort_order' => $sortOrder,
-            'created_by' => $this->authenticatedUser->id,
-            'updated_by' => $this->authenticatedUser->id,
+            'created_by' => $this->getAuthenticatedUser()->id,
+            'updated_by' => $this->getAuthenticatedUser()->id,
         ]);
     }
 
@@ -62,7 +73,7 @@ readonly class AccountTemplateChecklistService
 
         $checklist->update([
             'name' => $name,
-            'updated_by' => $this->authenticatedUser->id,
+            'updated_by' => $this->getAuthenticatedUser()->id,
         ]);
     }
 
@@ -89,7 +100,7 @@ readonly class AccountTemplateChecklistService
             'frequency_type' => $frequencyType->value,
             'frequency_anchor' => $frequencyAnchor->value,
             'frequency_value' => $frequencyValue,
-            'updated_by' => $this->authenticatedUser->id,
+            'updated_by' => $this->getAuthenticatedUser()->id,
         ]);
     }
 
@@ -110,7 +121,7 @@ readonly class AccountTemplateChecklistService
 
         $checklist->update([
             'responsibility_type' => $responsibilityType->value,
-            'updated_by' => $this->authenticatedUser->id,
+            'updated_by' => $this->getAuthenticatedUser()->id,
         ]);
     }
 
@@ -136,9 +147,17 @@ readonly class AccountTemplateChecklistService
             throw new \Exception('Supplier can only be assigned to checklists in Supplier checklist groups');
         }
 
+        // Validate that the supplier belongs to the same account
+        $supplier = \App\Models\Supplier::findOrFail($supplierId);
+        if ($supplier->account_id !== $this->getAuthenticatedUser()->account_id) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'supplierId' => ['The selected supplier does not belong to your account.']
+            ]);
+        }
+
         $checklist->update([
             'supplier_id' => $supplierId,
-            'updated_by' => $this->authenticatedUser->id,
+            'updated_by' => $this->getAuthenticatedUser()->id,
         ]);
     }
 
@@ -153,7 +172,7 @@ readonly class AccountTemplateChecklistService
     {
         // Verify group belongs to authenticated user's account
         $this->groupModel::where('id', $groupId)
-            ->where('account_id', $this->authenticatedUser->account_id)
+            ->where('account_id', $this->getAuthenticatedUser()->account_id)
             ->firstOrFail();
 
         foreach ($sortData as $item) {
@@ -163,7 +182,7 @@ readonly class AccountTemplateChecklistService
 
             $checklist->update([
                 'sort_order' => $item['sortOrder'],
-                'updated_by' => $this->authenticatedUser->id,
+                'updated_by' => $this->getAuthenticatedUser()->id,
             ]);
         }
     }
@@ -192,7 +211,7 @@ readonly class AccountTemplateChecklistService
     {
         // Verify group belongs to authenticated user's account
         $this->groupModel::where('id', $groupId)
-            ->where('account_id', $this->authenticatedUser->account_id)
+            ->where('account_id', $this->getAuthenticatedUser()->account_id)
             ->firstOrFail();
 
         // Get the checklist
