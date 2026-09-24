@@ -4,17 +4,18 @@ declare(strict_types=1);
 
 namespace App\Services\Staff;
 
+use App\Data\StaffAuthenticatedUser;
 use App\Dto\Request\InitialEventSegmentRequestDto;
 use App\Dto\Request\WeddingSegmentsRequestDto;
 use App\Enums\EventTypeEnum;
 use App\Models\Event;
 use App\Models\EventSegment;
-use App\Models\Staff;
+use App\Services\AddressService;
 
 readonly class EventSegmentService
 {
     public function __construct(
-        private Staff $authenticatedUser,
+        private StaffAuthenticatedUser $authenticatedUser,
         private AddressService $addressService,
     ) {}
 

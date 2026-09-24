@@ -15,18 +15,12 @@ use Illuminate\Support\Facades\DB;
 
 class AccountRoleController extends Controller
 {
-    public function __construct() {}
-
     /**
      * Get all roles for the authenticated staff's account
      */
-    public function index(): JsonResponse
+    public function index(AccountRoleService $accountRoleService): JsonResponse
     {
-        $staff = auth('staff')->user();
-        $accountId = $staff->account_id;
-
-        $service = app(AccountRoleService::class, ['authenticatedUser' => $staff]);
-        $roles = $service->getRoles($accountId);
+        $roles = $accountRoleService->getRoles();
 
         $response = $roles->map(fn($role) => AccountRoleResponseDto::fromData($role)->toArray());
 
@@ -36,17 +30,12 @@ class AccountRoleController extends Controller
     /**
      * Create a new account role
      */
-    public function store(CreateAccountRoleRequest $request): JsonResponse
+    public function store(CreateAccountRoleRequest $request, AccountRoleService $accountRoleService): JsonResponse
     {
-        $staff = auth('staff')->user();
-        $accountId = $staff->account_id;
-
         $dto = AccountRoleRequestDto::fromArray($request->validated());
 
-        $service = app(AccountRoleService::class, ['authenticatedUser' => $staff]);
-
-        DB::transaction(function () use ($service, $accountId, $dto) {
-            $service->createRole($accountId, $dto);
+        DB::transaction(function () use ($dto, $accountRoleService) {
+            $accountRoleService->createRole($dto);
         });
 
         return response()->json(null, 201);
@@ -55,17 +44,12 @@ class AccountRoleController extends Controller
     /**
      * Update an existing account role
      */
-    public function update(UpdateAccountRoleRequest $request, string $id): JsonResponse
+    public function update(UpdateAccountRoleRequest $request, string $id, AccountRoleService $accountRoleService): JsonResponse
     {
-        $staff = auth('staff')->user();
-        $accountId = $staff->account_id;
-
         $dto = AccountRoleRequestDto::fromArray($request->validated());
 
-        $service = app(AccountRoleService::class, ['authenticatedUser' => $staff]);
-
-        DB::transaction(function () use ($service, $id, $accountId, $dto) {
-            $service->updateRole($id, $accountId, $dto);
+        DB::transaction(function () use ($id, $dto, $accountRoleService) {
+            $accountRoleService->updateRole($id, $dto);
         });
 
         return response()->json(null, 200);
@@ -74,15 +58,10 @@ class AccountRoleController extends Controller
     /**
      * Delete a account role
      */
-    public function destroy(string $id): JsonResponse
+    public function destroy(string $id, AccountRoleService $accountRoleService): JsonResponse
     {
-        $staff = auth('staff')->user();
-        $accountId = $staff->account_id;
-
-        $service = app(AccountRoleService::class, ['authenticatedUser' => $staff]);
-
-        DB::transaction(function () use ($service, $id, $accountId) {
-            $service->deleteRole($id, $accountId);
+        DB::transaction(function () use ($id, $accountRoleService) {
+            $accountRoleService->deleteRole($id);
         });
 
         return response()->json(null, 204);

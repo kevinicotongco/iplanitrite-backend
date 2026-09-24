@@ -18,19 +18,15 @@ use Illuminate\Support\Facades\DB;
 
 class AccountTemplateChecklistController extends Controller
 {
-    public function __construct(
-        private readonly AccountTemplateChecklistService $checklistService
-    ) {}
-
     /**
      * Create checklist
      */
-    public function store(string $groupId, CreateAccountTemplateChecklistRequest $request): JsonResponse
+    public function store(string $groupId, CreateAccountTemplateChecklistRequest $request, AccountTemplateChecklistService $checklistService): JsonResponse
     {
         $dto = $request->toDto();
 
-        DB::transaction(function () use ($groupId, $dto) {
-            $this->checklistService->createChecklist($groupId, $dto->name);
+        DB::transaction(function () use ($groupId, $dto, $checklistService) {
+            $checklistService->createChecklist($groupId, $dto->name);
         });
 
         return response()->json([], 200);
@@ -39,12 +35,12 @@ class AccountTemplateChecklistController extends Controller
     /**
      * Update checklist name
      */
-    public function updateName(string $groupId, string $checklistId, UpdateAccountTemplateChecklistNameRequest $request): JsonResponse
+    public function updateName(string $groupId, string $checklistId, UpdateAccountTemplateChecklistNameRequest $request, AccountTemplateChecklistService $checklistService): JsonResponse
     {
         $dto = $request->toDto();
 
-        DB::transaction(function () use ($groupId, $checklistId, $dto) {
-            $this->checklistService->updateChecklistName($groupId, $checklistId, $dto->name);
+        DB::transaction(function () use ($groupId, $checklistId, $dto, $checklistService) {
+            $checklistService->updateChecklistName($groupId, $checklistId, $dto->name);
         });
 
         return response()->json([], 200);
@@ -53,12 +49,12 @@ class AccountTemplateChecklistController extends Controller
     /**
      * Update checklist frequency
      */
-    public function updateFrequency(string $groupId, string $checklistId, UpdateAccountTemplateChecklistFrequencyRequest $request): JsonResponse
+    public function updateFrequency(string $groupId, string $checklistId, UpdateAccountTemplateChecklistFrequencyRequest $request, AccountTemplateChecklistService $checklistService): JsonResponse
     {
         $dto = $request->toDto();
 
-        DB::transaction(function () use ($groupId, $checklistId, $dto) {
-            $this->checklistService->updateChecklistFrequency(
+        DB::transaction(function () use ($groupId, $checklistId, $dto, $checklistService) {
+            $checklistService->updateChecklistFrequency(
                 $groupId,
                 $checklistId,
                 $dto->frequencyType,
@@ -73,12 +69,12 @@ class AccountTemplateChecklistController extends Controller
     /**
      * Update checklist responsibility
      */
-    public function updateResponsibility(string $groupId, string $checklistId, UpdateAccountTemplateChecklistResponsibilityRequest $request): JsonResponse
+    public function updateResponsibility(string $groupId, string $checklistId, UpdateAccountTemplateChecklistResponsibilityRequest $request, AccountTemplateChecklistService $checklistService): JsonResponse
     {
         $dto = $request->toDto();
 
-        DB::transaction(function () use ($groupId, $checklistId, $dto) {
-            $this->checklistService->updateChecklistResponsibility(
+        DB::transaction(function () use ($groupId, $checklistId, $dto, $checklistService) {
+            $checklistService->updateChecklistResponsibility(
                 $groupId,
                 $checklistId,
                 $dto->responsibilityType
@@ -91,12 +87,12 @@ class AccountTemplateChecklistController extends Controller
     /**
      * Update checklist supplier
      */
-    public function updateSupplier(string $groupId, string $checklistId, UpdateAccountTemplateChecklistSupplierRequest $request): JsonResponse
+    public function updateSupplier(string $groupId, string $checklistId, UpdateAccountTemplateChecklistSupplierRequest $request, AccountTemplateChecklistService $checklistService): JsonResponse
     {
         $dto = $request->toDto();
 
-        DB::transaction(function () use ($groupId, $checklistId, $dto) {
-            $this->checklistService->updateChecklistSupplier(
+        DB::transaction(function () use ($groupId, $checklistId, $dto, $checklistService) {
+            $checklistService->updateChecklistSupplier(
                 $groupId,
                 $checklistId,
                 $dto->supplierId
@@ -109,7 +105,7 @@ class AccountTemplateChecklistController extends Controller
     /**
      * Bulk update checklist sort order
      */
-    public function updateSort(string $groupId, Request $request): JsonResponse
+    public function updateSort(string $groupId, Request $request, AccountTemplateChecklistService $checklistService): JsonResponse
     {
         $sortData = array_map(
             fn($item) => SortRequestDto::fromArray($item),
@@ -121,8 +117,8 @@ class AccountTemplateChecklistController extends Controller
             $sortData
         );
 
-        DB::transaction(function () use ($groupId, $sortDataArray) {
-            $this->checklistService->updateChecklistsSortOrder($groupId, $sortDataArray);
+        DB::transaction(function () use ($groupId, $sortDataArray, $checklistService) {
+            $checklistService->updateChecklistsSortOrder($groupId, $sortDataArray);
         });
 
         return response()->json([], 200);
@@ -131,10 +127,10 @@ class AccountTemplateChecklistController extends Controller
     /**
      * Delete checklist
      */
-    public function destroy(string $groupId, string $checklistId): JsonResponse
+    public function destroy(string $groupId, string $checklistId, AccountTemplateChecklistService $checklistService): JsonResponse
     {
-        DB::transaction(function () use ($groupId, $checklistId) {
-            $this->checklistService->deleteChecklist($groupId, $checklistId);
+        DB::transaction(function () use ($groupId, $checklistId, $checklistService) {
+            $checklistService->deleteChecklist($groupId, $checklistId);
         });
 
         return response()->json([], 200);

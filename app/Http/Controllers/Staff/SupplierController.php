@@ -15,16 +15,12 @@ use Illuminate\Support\Facades\DB;
 
 class SupplierController extends Controller
 {
-    public function __construct(
-        private readonly SupplierService $supplierService
-    ) {}
-
     /**
      * Get all suppliers
      */
-    public function index(): JsonResponse
+    public function index(SupplierService $supplierService): JsonResponse
     {
-        $suppliers = $this->supplierService->getAllSuppliers();
+        $suppliers = $supplierService->getAllSuppliers();
 
         $responseDtos = $suppliers->map(function ($supplierData) {
             $supplier = Supplier::with(['contactNumber', 'address.country'])->findOrFail($supplierData->id);
@@ -37,9 +33,9 @@ class SupplierController extends Controller
     /**
      * Get single supplier
      */
-    public function show(string $supplierId): JsonResponse
+    public function show(string $supplierId, SupplierService $supplierService): JsonResponse
     {
-        $supplierData = $this->supplierService->getSupplierById($supplierId);
+        $supplierData = $supplierService->getSupplierById($supplierId);
         $supplier = Supplier::with(['contactNumber', 'address.country'])->findOrFail($supplierData->id);
 
         $responseDto = SupplierResponseDto::fromModel($supplier);
@@ -50,12 +46,12 @@ class SupplierController extends Controller
     /**
      * Create supplier
      */
-    public function store(CreateSupplierRequest $request): JsonResponse
+    public function store(CreateSupplierRequest $request, SupplierService $supplierService): JsonResponse
     {
         $dto = $request->toDto();
 
-        DB::transaction(function () use ($dto) {
-            $this->supplierService->createSupplier(
+        DB::transaction(function () use ($dto, $supplierService) {
+            $supplierService->createSupplier(
                 $dto->companyName,
                 $dto->contactPerson,
                 $dto->contactNumber,
@@ -69,12 +65,12 @@ class SupplierController extends Controller
     /**
      * Update supplier
      */
-    public function update(string $supplierId, CreateSupplierRequest $request): JsonResponse
+    public function update(string $supplierId, CreateSupplierRequest $request, SupplierService $supplierService): JsonResponse
     {
         $dto = $request->toDto();
 
-        DB::transaction(function () use ($supplierId, $dto) {
-            $this->supplierService->updateSupplier(
+        DB::transaction(function () use ($supplierId, $dto, $supplierService) {
+            $supplierService->updateSupplier(
                 $supplierId,
                 $dto->companyName,
                 $dto->contactPerson,
@@ -89,10 +85,10 @@ class SupplierController extends Controller
     /**
      * Delete supplier
      */
-    public function destroy(string $supplierId): JsonResponse
+    public function destroy(string $supplierId, SupplierService $supplierService): JsonResponse
     {
-        DB::transaction(function () use ($supplierId) {
-            $this->supplierService->deleteSupplier($supplierId);
+        DB::transaction(function () use ($supplierId, $supplierService) {
+            $supplierService->deleteSupplier($supplierId);
         });
 
         return response()->json([], 200);

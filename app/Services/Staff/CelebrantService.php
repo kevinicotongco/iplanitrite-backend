@@ -5,14 +5,16 @@ declare(strict_types=1);
 namespace App\Services\Staff;
 
 use App\Data\CelebrantData;
+use App\Data\StaffAuthenticatedUser;
 use App\Dto\Request\CelebrantRequestDto;
 use App\Models\Celebrant;
-use App\Models\Staff;
+use App\Services\AddressService;
+use App\Services\ContactNumberService;
 
 readonly class CelebrantService
 {
     public function __construct(
-        private Staff $authenticatedUser,
+        private StaffAuthenticatedUser $authenticatedUser,
         private Celebrant $celebrantModel,
         private AddressService $addressService,
         private ContactNumberService $contactNumberService,

@@ -10,6 +10,7 @@ use App\Http\Controllers\Staff\EventController;
 use App\Http\Controllers\Staff\StaffController;
 use App\Http\Controllers\Staff\StaffUserController;
 use App\Http\Controllers\Staff\SupplierController;
+use App\Http\Middleware\BindAuthenticatedUser;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -48,7 +49,7 @@ Route::post('/clients/login', [ClientUserController::class, 'login'])
 |--------------------------------------------------------------------------
 */
 
-Route::middleware('auth:admin')->prefix('admin')->group(function () {
+Route::middleware(['auth:admin', BindAuthenticatedUser::class])->prefix('admin')->group(function () {
     Route::get('/profile', [AdminUserController::class, 'profile'])
         ->name('admin.profile');
 
@@ -75,7 +76,7 @@ Route::middleware('auth:admin')->prefix('admin')->group(function () {
 |--------------------------------------------------------------------------
 */
 
-Route::middleware('auth:staff')->prefix('staff')->group(function () {
+Route::middleware(['auth:staff', BindAuthenticatedUser::class])->prefix('staff')->group(function () {
     // Profile Management
     Route::get('/profile', [StaffUserController::class, 'profile'])
         ->name('staff.profile');
@@ -183,7 +184,7 @@ Route::middleware('auth:staff')->prefix('staff')->group(function () {
 |--------------------------------------------------------------------------
 */
 
-Route::middleware('auth:client')->prefix('clients')->group(function () {
+Route::middleware(['auth:client', BindAuthenticatedUser::class])->prefix('clients')->group(function () {
     Route::get('/profile', [ClientUserController::class, 'profile'])
         ->name('clients.profile');
     

@@ -8,8 +8,6 @@ use App\Dto\Request\ManageStaffRequestDto;
 use App\Dto\Response\StaffResponseDto;
 use App\Http\Requests\CreateStaffRequest;
 use App\Http\Requests\UpdateStaffRequest;
-use App\Services\Staff\AddressService;
-use App\Services\Staff\ContactNumberService;
 use App\Services\Staff\StaffManagementService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
@@ -18,18 +16,12 @@ use Throwable;
 
 class StaffController extends Controller
 {
-    public function __construct() {}
-
     /**
      * Get all staff for the authenticated account staff's
      */
-    public function index(): JsonResponse
+    public function index(StaffManagementService $staffManagementService): JsonResponse
     {
-        $staff = auth('staff')->user();
-        $accountId = $staff->account_id;
-
-        $service = $this->createService($staff);
-        $staffList = $service->getStaff($accountId);
+        $staffList = $staffManagementService->getStaff();
 
         $response = $staffList->map(fn($s) => StaffResponseDto::fromData($s)->toArray());
 
@@ -39,19 +31,12 @@ class StaffController extends Controller
     /**
      * @throws Throwable
      */
-    public function store(CreateStaffRequest $request): JsonResponse
+    public function store(CreateStaffRequest $request, StaffManagementService $staffManagementService): JsonResponse
     {
-        $staff = auth('staff')->user();
-        $accountId = $staff->account_id;
-        $account = $staff->account;
-        $countryId = $account->country_id;
-
         $dto = ManageStaffRequestDto::fromArray($request->validated());
 
-        $service = $this->createService($staff);
-
-        DB::transaction(function () use ($service, $accountId, $countryId, $dto) {
-            $service->createStaff($accountId, $countryId, $dto);
+        DB::transaction(function () use ($dto, $staffManagementService) {
+            $staffManagementService->createStaff($dto);
         });
 
         return response()->json(null, 201);
@@ -61,19 +46,12 @@ class StaffController extends Controller
      * Update an existing account staff member
      * @throws Throwable
      */
-    public function update(UpdateStaffRequest $request, string $id): JsonResponse
+    public function update(UpdateStaffRequest $request, string $id, StaffManagementService $staffManagementService): JsonResponse
     {
-        $staff = auth('staff')->user();
-        $accountId = $staff->account_id;
-        $account = $staff->account;
-        $countryId = $account->country_id;
-
         $dto = ManageStaffRequestDto::fromArray($request->validated());
 
-        $service = $this->createService($staff);
-
-        DB::transaction(function () use ($service, $id, $accountId, $countryId, $dto) {
-            $service->updateStaff($id, $accountId, $countryId, $dto);
+        DB::transaction(function () use ($id, $dto, $staffManagementService) {
+            $staffManagementService->updateStaff($id, $dto);
         });
 
         return response()->json(null, 200);
@@ -83,32 +61,12 @@ class StaffController extends Controller
      * Delete a account staff member
      * @throws Throwable
      */
-    public function destroy(string $id): JsonResponse
+    public function destroy(string $id, StaffManagementService $staffManagementService): JsonResponse
     {
-        $staff = auth('staff')->user();
-        $accountId = $staff->account_id;
-
-        $service = $this->createService($staff);
-
-        DB::transaction(function () use ($service, $id, $accountId) {
-            $service->deleteStaff($id, $accountId);
+        DB::transaction(function () use ($id, $staffManagementService) {
+            $staffManagementService->deleteStaff($id);
         });
 
         return response()->json(null, 204);
-    }
-
-    /**
-     * Create StaffManagementService with dependencies
-     */
-    private function createService($staff): StaffManagementService
-    {
-        $addressService = app(AddressService::class, ['authenticatedUser' => $staff]);
-        $contactNumberService = app(ContactNumberService::class, ['authenticatedUser' => $staff]);
-
-        return app(StaffManagementService::class, [
-            'authenticatedUser' => $staff,
-            'addressService' => $addressService,
-            'contactNumberService' => $contactNumberService,
-        ]);
     }
 }

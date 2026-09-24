@@ -2,16 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Services\Staff;
+namespace App\Services;
 
 use App\Data\ContactNumberData;
 use App\Models\ContactNumber;
-use App\Models\Staff;
 
-readonly class ContactNumberService
+class ContactNumberService
 {
     public function __construct(
-        private Staff $authenticatedUser,
         private ContactNumber $contactNumberModel,
     ) {}
 

@@ -17,14 +17,9 @@ use Illuminate\Support\Facades\DB;
 
 class StaffUserController extends Controller
 {
-    public function __construct(
-        private readonly StaffUserService $service
-    ) {
-    }
-
-    public function login(StaffLoginRequestDto $request): JsonResponse
+    public function login(StaffLoginRequestDto $request, StaffUserService $service): JsonResponse
     {
-        $result = $this->service->login($request->email, $request->password);
+        $result = $service->login($request->email, $request->password);
 
         if ($result === null) {
             return response()->json([
@@ -37,23 +32,23 @@ class StaffUserController extends Controller
         return response()->json($responseDto->toArray(), 200);
     }
 
-    public function profile(Request $request): JsonResponse
+    public function profile(Request $request, StaffUserService $service): JsonResponse
     {
         $staffId = auth('staff')->id();
 
-        $staff = $this->service->getProfile($staffId);
+        $staff = $service->getProfile($staffId);
 
         $responseDto = StaffResponseDto::fromModel($staff);
 
         return response()->json($responseDto->toArray(), 200);
     }
 
-    public function updateProfile(StaffUpdateProfileRequestDto $request): JsonResponse
+    public function updateProfile(StaffUpdateProfileRequestDto $request, StaffUserService $service): JsonResponse
     {
         $staffId = auth('staff')->id();
 
-        $staff = DB::transaction(function () use ($staffId, $request) {
-            return $this->service->updateProfile($staffId, $request->toArray());
+        $staff = DB::transaction(function () use ($staffId, $request, $service) {
+            return $service->updateProfile($staffId, $request->toArray());
         });
 
         $responseDto = StaffResponseDto::fromModel($staff);
@@ -61,12 +56,12 @@ class StaffUserController extends Controller
         return response()->json($responseDto->toArray(), 200);
     }
 
-    public function changePassword(ChangePasswordRequestDto $request): JsonResponse
+    public function changePassword(ChangePasswordRequestDto $request, StaffUserService $service): JsonResponse
     {
         $staffId = auth('staff')->id();
 
-        DB::transaction(function () use ($staffId, $request) {
-            $this->service->changePassword(
+        DB::transaction(function () use ($staffId, $request, $service) {
+            $service->changePassword(
                 $staffId,
                 $request->currentPassword,
                 $request->newPassword

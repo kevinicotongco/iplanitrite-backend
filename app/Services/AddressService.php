@@ -2,17 +2,15 @@
 
 declare(strict_types=1);
 
-namespace App\Services\Staff;
+namespace App\Services;
 
 use App\Data\AddressData;
 use App\Dto\Request\AddressRequestDto;
 use App\Models\Address;
-use App\Models\Staff;
 
-readonly class AddressService
+class AddressService
 {
     public function __construct(
-        private Staff $authenticatedUser,
         private Address $addressModel,
     ) {}
 

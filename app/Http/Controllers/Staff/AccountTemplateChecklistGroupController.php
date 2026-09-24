@@ -18,19 +18,15 @@ use Illuminate\Support\Facades\DB;
 
 class AccountTemplateChecklistGroupController extends Controller
 {
-    public function __construct(
-        private readonly AccountTemplateChecklistGroupService $groupService
-    ) {}
-
     /**
      * Get checklist groups by type and event type
      */
-    public function index(string $type, string $eventType): JsonResponse
+    public function index(string $type, string $eventType, AccountTemplateChecklistGroupService $groupService): JsonResponse
     {
         $checklistType = ChecklistGroupTypeEnum::from($type);
         $eventTypeEnum = EventTypeEnum::from($eventType);
 
-        $groups = $this->groupService->getGroupsByTypeAndEventType($checklistType, $eventTypeEnum);
+        $groups = $groupService->getGroupsByTypeAndEventType($checklistType, $eventTypeEnum);
 
         $responseDtos = $groups->map(fn($groupData) =>
             AccountTemplateChecklistGroupResponseDto::fromData($groupData)
@@ -42,14 +38,14 @@ class AccountTemplateChecklistGroupController extends Controller
     /**
      * Create checklist group
      */
-    public function store(string $type, string $eventType, CreateAccountTemplateChecklistGroupRequest $request): JsonResponse
+    public function store(string $type, string $eventType, CreateAccountTemplateChecklistGroupRequest $request, AccountTemplateChecklistGroupService $groupService): JsonResponse
     {
         $checklistType = ChecklistGroupTypeEnum::from($type);
         $eventTypeEnum = EventTypeEnum::from($eventType);
         $dto = $request->toDto();
 
-        DB::transaction(function () use ($dto, $checklistType, $eventTypeEnum) {
-            $this->groupService->createGroup($dto->name, $checklistType, $eventTypeEnum);
+        DB::transaction(function () use ($dto, $checklistType, $eventTypeEnum, $groupService) {
+            $groupService->createGroup($dto->name, $checklistType, $eventTypeEnum);
         });
 
         return response()->json([], 200);
@@ -58,12 +54,12 @@ class AccountTemplateChecklistGroupController extends Controller
     /**
      * Update checklist group name
      */
-    public function update(string $groupId, UpdateAccountTemplateChecklistGroupNameRequest $request): JsonResponse
+    public function update(string $groupId, UpdateAccountTemplateChecklistGroupNameRequest $request, AccountTemplateChecklistGroupService $groupService): JsonResponse
     {
         $dto = $request->toDto();
 
-        DB::transaction(function () use ($groupId, $dto) {
-            $this->groupService->updateGroupName($groupId, $dto->name);
+        DB::transaction(function () use ($groupId, $dto, $groupService) {
+            $groupService->updateGroupName($groupId, $dto->name);
         });
 
         return response()->json([], 200);
@@ -72,7 +68,7 @@ class AccountTemplateChecklistGroupController extends Controller
     /**
      * Bulk update group sort order
      */
-    public function updateSort(Request $request): JsonResponse
+    public function updateSort(Request $request, AccountTemplateChecklistGroupService $groupService): JsonResponse
     {
         $sortData = array_map(
             fn($item) => SortRequestDto::fromArray($item),
@@ -84,8 +80,8 @@ class AccountTemplateChecklistGroupController extends Controller
             $sortData
         );
 
-        DB::transaction(function () use ($sortDataArray) {
-            $this->groupService->updateGroupsSortOrder($sortDataArray);
+        DB::transaction(function () use ($sortDataArray, $groupService) {
+            $groupService->updateGroupsSortOrder($sortDataArray);
         });
 
         return response()->json([], 200);
@@ -94,10 +90,10 @@ class AccountTemplateChecklistGroupController extends Controller
     /**
      * Delete checklist group
      */
-    public function destroy(string $groupId): JsonResponse
+    public function destroy(string $groupId, AccountTemplateChecklistGroupService $groupService): JsonResponse
     {
-        DB::transaction(function () use ($groupId) {
-            $this->groupService->deleteGroup($groupId);
+        DB::transaction(function () use ($groupId, $groupService) {
+            $groupService->deleteGroup($groupId);
         });
 
         return response()->json([], 200);

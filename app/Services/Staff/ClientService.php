@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services\Staff;
 
+use App\Data\StaffAuthenticatedUser;
 use App\Dto\Request\ClientCreateRequestDto;
 use App\Models\Client;
-use App\Models\Staff;
 use App\Notifications\ClientWelcomeNotification;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -14,7 +14,7 @@ use Illuminate\Support\Str;
 readonly class ClientService
 {
     public function __construct(
-        private Staff $authenticatedUser,
+        private StaffAuthenticatedUser $authenticatedUser,
         private Client $clientModel,
     ) {}
 

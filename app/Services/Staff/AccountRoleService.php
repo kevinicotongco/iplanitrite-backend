@@ -5,26 +5,25 @@ declare(strict_types=1);
 namespace App\Services\Staff;
 
 use App\Data\AccountRoleData;
+use App\Data\StaffAuthenticatedUser;
 use App\Dto\Request\AccountRoleRequestDto;
 use App\Models\AccountRole;
 use App\Models\AccountRolePermission;
-use App\Models\Staff;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 readonly class AccountRoleService
 {
     public function __construct(
-        private Staff $authenticatedUser,
+        private StaffAuthenticatedUser $authenticatedUser,
     ) {}
 
     /**
-     * @param string $accountId
      * @return Collection<AccountRoleData>
      */
-    public function getRoles(string $accountId): Collection
+    public function getRoles(): Collection
     {
-        $roles = AccountRole::where('account_id', $accountId)
+        $roles = AccountRole::where('account_id', $this->authenticatedUser->accountId)
             ->with('permissions')
             ->get();
 
@@ -32,15 +31,14 @@ readonly class AccountRoleService
     }
 
     /**
-     * @param string $accountId
      * @param AccountRoleRequestDto $dto
      * @return void
      */
-    public function createRole(string $accountId, AccountRoleRequestDto $dto): void
+    public function createRole(AccountRoleRequestDto $dto): void
     {
         $role = AccountRole::create([
             'id' => Str::uuid()->toString(),
-            'account_id' => $accountId,
+            'account_id' => $this->authenticatedUser->accountId,
             'name' => $dto->name,
             'created_by' => $this->authenticatedUser->id,
             'updated_by' => $this->authenticatedUser->id,
@@ -59,14 +57,13 @@ readonly class AccountRoleService
 
     /**
      * @param string $roleId
-     * @param string $accountId
      * @param AccountRoleRequestDto $dto
      * @return void
      */
-    public function updateRole(string $roleId, string $accountId, AccountRoleRequestDto $dto): void
+    public function updateRole(string $roleId, AccountRoleRequestDto $dto): void
     {
         $role = AccountRole::where('id', $roleId)
-            ->where('account_id', $accountId)
+            ->where('account_id', $this->authenticatedUser->accountId)
             ->firstOrFail();
 
         $role->update([
@@ -91,13 +88,12 @@ readonly class AccountRoleService
 
     /**
      * @param string $roleId
-     * @param string $accountId
      * @return void
      */
-    public function deleteRole(string $roleId, string $accountId): void
+    public function deleteRole(string $roleId): void
     {
         $role = AccountRole::where('id', $roleId)
-            ->where('account_id', $accountId)
+            ->where('account_id', $this->authenticatedUser->accountId)
             ->firstOrFail();
 
         // Soft delete associated permissions

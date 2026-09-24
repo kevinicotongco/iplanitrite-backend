@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace App\Services\Staff;
 
+use App\Data\StaffAuthenticatedUser;
 use App\Data\StaffData;
 use App\Dto\Request\ManageStaffRequestDto;
+use App\Models\Account;
 use App\Models\Staff;
+use App\Services\AddressService;
+use App\Services\ContactNumberService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -14,18 +18,17 @@ use Illuminate\Support\Str;
 readonly class StaffManagementService
 {
     public function __construct(
-        private Staff $authenticatedUser,
+        private StaffAuthenticatedUser $authenticatedUser,
         private AddressService $addressService,
         private ContactNumberService $contactNumberService,
     ) {}
 
     /**
-     * @param string $accountId
      * @return Collection<StaffData>
      */
-    public function getStaff(string $accountId): Collection
+    public function getStaff(): Collection
     {
-        $staff = Staff::where('account_id', $accountId)
+        $staff = Staff::where('account_id', $this->authenticatedUser->accountId)
             ->with(['address', 'contactNumber', 'profilePictureDocument'])
             ->get();
 
@@ -33,13 +36,14 @@ readonly class StaffManagementService
     }
 
     /**
-     * @param string $accountId
-     * @param string $countryId
      * @param ManageStaffRequestDto $dto
      * @return void
      */
-    public function createStaff(string $accountId, string $countryId, ManageStaffRequestDto $dto): void
+    public function createStaff(ManageStaffRequestDto $dto): void
     {
+        $account = Account::findOrFail($this->authenticatedUser->accountId);
+        $countryId = $account->country_id;
+
         $addressId = null;
         $contactNumberId = null;
 
@@ -58,7 +62,7 @@ readonly class StaffManagementService
 
         $staff = Staff::create([
             'id' => Str::uuid()->toString(),
-            'account_id' => $accountId,
+            'account_id' => $this->authenticatedUser->accountId,
             'account_role_id' => $dto->role,
             'email' => $dto->email,
             'password' => Hash::make($defaultPassword),
@@ -76,16 +80,17 @@ readonly class StaffManagementService
 
     /**
      * @param string $staffId
-     * @param string $accountId
-     * @param string $countryId
      * @param ManageStaffRequestDto $dto
      * @return void
      */
-    public function updateStaff(string $staffId, string $accountId, string $countryId, ManageStaffRequestDto $dto): void
+    public function updateStaff(string $staffId, ManageStaffRequestDto $dto): void
     {
         $staff = Staff::where('id', $staffId)
-            ->where('account_id', $accountId)
+            ->where('account_id', $this->authenticatedUser->accountId)
             ->firstOrFail();
+
+        $account = Account::findOrFail($this->authenticatedUser->accountId);
+        $countryId = $account->country_id;
 
         $addressId = $staff->address_id;
         $contactNumberId = $staff->contact_number_id;
@@ -122,13 +127,12 @@ readonly class StaffManagementService
 
     /**
      * @param string $staffId
-     * @param string $accountId
      * @return void
      */
-    public function deleteStaff(string $staffId, string $accountId): void
+    public function deleteStaff(string $staffId): void
     {
         $staff = Staff::where('id', $staffId)
-            ->where('account_id', $accountId)
+            ->where('account_id', $this->authenticatedUser->accountId)
             ->firstOrFail();
 
         $staff->delete();

@@ -5,22 +5,23 @@ declare(strict_types=1);
 namespace App\Services\Staff;
 
 use App\Data\EventWithRelationsData;
+use App\Data\StaffAuthenticatedUser;
 use App\Dto\Request\CreateEventRequestDto;
 use App\Dto\Request\GetEventsRequestDto;
 use App\Dto\Request\UpdateEventRequestDto;
 use App\Dto\Request\WeddingCelebrantsRequestDto;
 use App\Enums\EventStatusEnum;
 use App\Enums\EventTypeEnum;
+use App\Models\Account;
 use App\Models\Client;
 use App\Models\Event;
-use App\Models\Staff;
 use App\Notifications\EventCreatedNotification;
 use Illuminate\Support\Collection;
 
 readonly class EventService
 {
     public function __construct(
-        private Staff $authenticatedUser,
+        private StaffAuthenticatedUser $authenticatedUser,
         private Event $eventModel,
         private CelebrantService $celebrantService,
         private ClientService $clientService,
@@ -30,17 +31,16 @@ readonly class EventService
     ) {}
 
     /**
-     * @param string $accountId
      * @param GetEventsRequestDto $dto
      * @return Collection<EventWithRelationsData>
      */
-    public function getEvents(string $accountId, GetEventsRequestDto $dto): Collection
+    public function getEvents(GetEventsRequestDto $dto): Collection
     {
-        $query = $this->eventModel::where('account_id', $accountId)
+        $query = $this->eventModel::where('account_id', $this->authenticatedUser->accountId)
             ->with([
-                'celebrantOne.address', 
-                'celebrantOne.contactNumber', 
-                'celebrantTwo.address', 
+                'celebrantOne.address',
+                'celebrantOne.contactNumber',
+                'celebrantTwo.address',
                 'celebrantTwo.contactNumber',
                 'primarySegments.address'
             ]);
@@ -61,13 +61,14 @@ readonly class EventService
     /**
      * Create a new event with celebrants and clients
      *
-     * @param string $accountId
-     * @param string $countryId
      * @param CreateEventRequestDto $dto
      * @return void
      */
-    public function createEvent(string $accountId, string $countryId, CreateEventRequestDto $dto): void
+    public function createEvent(CreateEventRequestDto $dto): void
     {
+        $account = Account::findOrFail($this->authenticatedUser->accountId);
+        $countryId = $account->country_id;
+
         // Handle celebrants based on event type
         if ($dto->celebrants instanceof WeddingCelebrantsRequestDto) {
             // Wedding: create bride and groom
@@ -81,7 +82,7 @@ readonly class EventService
 
         // Create event (status defaults to Pending)
         $event = $this->eventModel::create([
-            'account_id' => $accountId,
+            'account_id' => $this->authenticatedUser->accountId,
             'name' => $dto->name,
             'description' => $dto->description,
             'status' => EventStatusEnum::Pending,
@@ -98,12 +99,12 @@ readonly class EventService
         // Create or get clients and attach to event
         $clientIds = [];
         if (!empty($dto->clients)) {
-            $clientIds = $this->clientService->createOrGetClients($accountId, $dto->name, $dto->clients);
+            $clientIds = $this->clientService->createOrGetClients($this->authenticatedUser->accountId, $dto->name, $dto->clients);
             $this->eventClientService->attachClientsToEvent($event, $clientIds);
         }
 
         // Copy template checklists to event checklists with assignees
-        $this->eventChecklistGroupService->copyTemplateChecklistsToEvent($event, $accountId, $clientIds);
+        $this->eventChecklistGroupService->copyTemplateChecklistsToEvent($event, $this->authenticatedUser->accountId, $clientIds);
 
         // Send event created notifications to all clients
         $clients = Client::whereIn('id', $clientIds)->get();
@@ -116,16 +117,17 @@ readonly class EventService
      * Update an existing event
      *
      * @param string $eventId
-     * @param string $accountId
-     * @param string $countryId
      * @param UpdateEventRequestDto $dto
      * @return void
      */
-    public function updateEvent(string $eventId, string $accountId, string $countryId, UpdateEventRequestDto $dto): void
+    public function updateEvent(string $eventId, UpdateEventRequestDto $dto): void
     {
         $event = $this->eventModel::where('id', $eventId)
-            ->where('account_id', $accountId)
+            ->where('account_id', $this->authenticatedUser->accountId)
             ->firstOrFail();
+
+        $account = Account::findOrFail($this->authenticatedUser->accountId);
+        $countryId = $account->country_id;
 
         // Handle celebrants based on event type
         if ($dto->celebrants instanceof WeddingCelebrantsRequestDto) {

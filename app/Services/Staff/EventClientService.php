@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Services\Staff;
 
+use App\Data\StaffAuthenticatedUser;
 use App\Models\Event;
-use App\Models\Staff;
 use Illuminate\Support\Str;
 
 readonly class EventClientService
 {
     public function __construct(
-        private Staff $authenticatedUser,
+        private StaffAuthenticatedUser $authenticatedUser,
     ) {}
 
     /**

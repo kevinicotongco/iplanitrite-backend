@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace App\Services\Staff;
 
+use App\Data\StaffAuthenticatedUser;
 use App\Enums\EventChecklistAssigneeTypeEnum;
 use App\Enums\ResponsibilityTypeEnum;
 use App\Models\EventChecklist;
 use App\Models\EventChecklistAssignee;
-use App\Models\Staff;
 
 readonly class EventChecklistAssigneeService
 {
     public function __construct(
-        private Staff $authenticatedUser,
+        private StaffAuthenticatedUser $authenticatedUser,
         private EventChecklistAssignee $eventChecklistAssigneeModel,
     ) {}
 
