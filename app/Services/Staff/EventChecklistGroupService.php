@@ -40,6 +40,7 @@ readonly class EventChecklistGroupService
                 'event_id' => $event->id,
                 'name' => $templateGroup->name,
                 'event_type' => $templateGroup->eventType,
+                'sort_order' => $templateGroup->sortOrder,
                 'created_by' => $this->authenticatedUser->id,
                 'updated_by' => $this->authenticatedUser->id,
             ]);

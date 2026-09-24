@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Enums;
 
-enum ChecklistTypeEnum: string
+enum ChecklistGroupTypeEnum: string
 {
-    case Account = 'Account';
+    case Supplier = 'Supplier';
     case General = 'General';
 }

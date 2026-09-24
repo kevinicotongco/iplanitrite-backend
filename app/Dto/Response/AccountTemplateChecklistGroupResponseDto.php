@@ -4,24 +4,61 @@ declare(strict_types=1);
 
 namespace App\Dto\Response;
 
+use App\Data\AccountTemplateChecklistGroupWithChecklistsData;
+use App\Enums\ChecklistGroupTypeEnum;
 use App\Models\AccountTemplateChecklistGroup;
+use App\Models\Supplier;
 
 readonly class AccountTemplateChecklistGroupResponseDto
 {
+    /**
+     * @param AccountTemplateChecklistResponseDto[] $checklists
+     */
     public function __construct(
         public string $id,
-        public string $accountId,
         public string $name,
-        public string $eventType,
+        public ChecklistGroupTypeEnum $checklistType,
+        public int $sortOrder,
+        public array $checklists,
     ) {}
 
-    public static function fromModel(AccountTemplateChecklistGroup $accountTemplateChecklistGroup): self
+    public static function fromModel(AccountTemplateChecklistGroup $group): self
     {
+        $checklists = $group->checklists()
+            ->orderBy('sort_order')
+            ->get()
+            ->map(fn($checklist) => AccountTemplateChecklistResponseDto::fromModel($checklist))
+            ->toArray();
+
         return new self(
-            id: $accountTemplateChecklistGroup->id,
-            accountId: $accountTemplateChecklistGroup->account_id,
-            name: $accountTemplateChecklistGroup->name,
-            eventType: $accountTemplateChecklistGroup->event_type->value,
+            id: $group->id,
+            name: $group->name,
+            checklistType: $group->checklist_type,
+            sortOrder: $group->sort_order,
+            checklists: $checklists,
+        );
+    }
+
+    public static function fromData(AccountTemplateChecklistGroupWithChecklistsData $data): self
+    {
+        // Need to load suppliers for checklists
+        $checklists = $data->checklists->map(function ($checklistData) {
+            $supplier = null;
+            if ($checklistData->supplierId) {
+                $supplierModel = Supplier::find($checklistData->supplierId);
+                if ($supplierModel) {
+                    $supplier = SupplierResponseDto::fromModel($supplierModel);
+                }
+            }
+            return AccountTemplateChecklistResponseDto::fromData($checklistData, $supplier);
+        })->toArray();
+
+        return new self(
+            id: $data->id,
+            name: $data->name,
+            checklistType: $data->checklistType,
+            sortOrder: $data->sortOrder,
+            checklists: $checklists,
         );
     }
 
@@ -32,9 +69,10 @@ readonly class AccountTemplateChecklistGroupResponseDto
     {
         return [
             'id' => $this->id,
-            'accountId' => $this->accountId,
             'name' => $this->name,
-            'eventType' => $this->eventType,
+            'checklistType' => $this->checklistType->value,
+            'sortOrder' => $this->sortOrder,
+            'checklists' => array_map(fn($checklist) => $checklist->toArray(), $this->checklists),
         ];
     }
 }

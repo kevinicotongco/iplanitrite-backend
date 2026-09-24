@@ -32,18 +32,26 @@ readonly class EventChecklistService
         AccountTemplateChecklistData $templateChecklistData,
         string|Carbon $eventDate
     ): EventChecklist {
-        $dueDate = $this->calculateDueDate(
-            $eventDate,
-            $templateChecklistData->frequencyDays,
-            $templateChecklistData->frequencyType,
-            $templateChecklistData->frequencyAnchor
-        );
+        $dueDate = null;
+        if ($templateChecklistData->frequencyValue !== null &&
+            $templateChecklistData->frequencyType !== null &&
+            $templateChecklistData->frequencyAnchor !== null) {
+            $dueDate = $this->calculateDueDate(
+                $eventDate,
+                $templateChecklistData->frequencyValue,
+                $templateChecklistData->frequencyType,
+                $templateChecklistData->frequencyAnchor
+            );
+        }
 
         return $this->eventChecklistModel::create([
             'event_checklist_group_id' => $eventGroup->id,
             'name' => $templateChecklistData->name,
             'description' => $templateChecklistData->description,
             'due_date' => $dueDate,
+            'sort_order' => $templateChecklistData->sortOrder,
+            'supplier_id' => $templateChecklistData->supplierId,
+            'responsibility_type' => $templateChecklistData->responsibilityType?->value,
             'created_by' => $this->authenticatedUser->id,
             'updated_by' => $this->authenticatedUser->id,
         ]);

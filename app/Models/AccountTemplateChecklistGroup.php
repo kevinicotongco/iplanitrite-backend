@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\ChecklistGroupTypeEnum;
 use App\Enums\EventTypeEnum;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
@@ -23,6 +24,7 @@ class AccountTemplateChecklistGroup extends Model
 
     protected $casts = [
         'event_type' => EventTypeEnum::class,
+        'checklist_type' => ChecklistGroupTypeEnum::class,
     ];
 
     public function account(): BelongsTo

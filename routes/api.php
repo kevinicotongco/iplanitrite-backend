@@ -3,10 +3,13 @@
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AccountController;
 use App\Http\Controllers\Client\ClientUserController;
+use App\Http\Controllers\Staff\AccountRoleController;
+use App\Http\Controllers\Staff\AccountTemplateChecklistController;
+use App\Http\Controllers\Staff\AccountTemplateChecklistGroupController;
 use App\Http\Controllers\Staff\EventController;
 use App\Http\Controllers\Staff\StaffController;
-use App\Http\Controllers\Staff\AccountRoleController;
 use App\Http\Controllers\Staff\StaffUserController;
+use App\Http\Controllers\Staff\SupplierController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -118,6 +121,60 @@ Route::middleware('auth:staff')->prefix('staff')->group(function () {
 
     Route::put('/events/{id}', [EventController::class, 'update'])
         ->name('staff.events.update');
+
+    // Supplier Management
+    Route::get('/suppliers', [SupplierController::class, 'index'])
+        ->name('staff.suppliers.index');
+
+    Route::get('/suppliers/{supplierId}', [SupplierController::class, 'show'])
+        ->name('staff.suppliers.show');
+
+    Route::post('/suppliers', [SupplierController::class, 'store'])
+        ->name('staff.suppliers.store');
+
+    Route::put('/suppliers/{supplierId}', [SupplierController::class, 'update'])
+        ->name('staff.suppliers.update');
+
+    Route::delete('/suppliers/{supplierId}', [SupplierController::class, 'destroy'])
+        ->name('staff.suppliers.destroy');
+
+    // Account Template Checklist Group Management
+    Route::get('/account-template-checklist-groups/{type}/{eventType}', [AccountTemplateChecklistGroupController::class, 'index'])
+        ->name('staff.account_template_checklist_groups.index');
+
+    Route::post('/account-template-checklist-groups/{type}/{eventType}', [AccountTemplateChecklistGroupController::class, 'store'])
+        ->name('staff.account_template_checklist_groups.store');
+
+    Route::put('/account-template-checklist-groups/{groupId}', [AccountTemplateChecklistGroupController::class, 'update'])
+        ->name('staff.account_template_checklist_groups.update');
+
+    Route::post('/account-template-checklist-groups/sort', [AccountTemplateChecklistGroupController::class, 'updateSort'])
+        ->name('staff.account_template_checklist_groups.update_sort');
+
+    Route::delete('/account-template-checklist-groups/{groupId}', [AccountTemplateChecklistGroupController::class, 'destroy'])
+        ->name('staff.account_template_checklist_groups.destroy');
+
+    // Account Template Checklist Management
+    Route::post('/account-template-checklist-groups/{groupId}/account-template-checklists', [AccountTemplateChecklistController::class, 'store'])
+        ->name('staff.account_template_checklists.store');
+
+    Route::put('/account-template-checklist-groups/{groupId}/account-template-checklists/{checklistId}/name', [AccountTemplateChecklistController::class, 'updateName'])
+        ->name('staff.account_template_checklists.update_name');
+
+    Route::put('/account-template-checklist-groups/{groupId}/account-template-checklists/{checklistId}/frequency', [AccountTemplateChecklistController::class, 'updateFrequency'])
+        ->name('staff.account_template_checklists.update_frequency');
+
+    Route::put('/account-template-checklist-groups/{groupId}/account-template-checklists/{checklistId}/responsibility', [AccountTemplateChecklistController::class, 'updateResponsibility'])
+        ->name('staff.account_template_checklists.update_responsibility');
+
+    Route::put('/account-template-checklist-groups/{groupId}/account-template-checklists/{checklistId}/supplier', [AccountTemplateChecklistController::class, 'updateSupplier'])
+        ->name('staff.account_template_checklists.update_supplier');
+
+    Route::put('/account-template-checklist-groups/{groupId}/account-template-checklists/sort', [AccountTemplateChecklistController::class, 'updateSort'])
+        ->name('staff.account_template_checklists.update_sort');
+
+    Route::delete('/account-template-checklist-groups/{groupId}/account-template-checklists/{checklistId}', [AccountTemplateChecklistController::class, 'destroy'])
+        ->name('staff.account_template_checklists.destroy');
 });
 
 /*

@@ -6,6 +6,7 @@ namespace App\Data;
 
 use App\Enums\ChecklistFrequencyTypeEnum;
 use App\Enums\FrequencyAnchorEnum;
+use App\Enums\ResponsibilityTypeEnum;
 use App\Models\AccountTemplateChecklist;
 
 final readonly class AccountTemplateChecklistData
@@ -14,9 +15,12 @@ final readonly class AccountTemplateChecklistData
         public string $id,
         public string $name,
         public ?string $description,
-        public int $frequencyDays,
-        public ChecklistFrequencyTypeEnum $frequencyType,
-        public FrequencyAnchorEnum $frequencyAnchor,
+        public ?int $frequencyValue,
+        public ?ChecklistFrequencyTypeEnum $frequencyType,
+        public ?FrequencyAnchorEnum $frequencyAnchor,
+        public ?ResponsibilityTypeEnum $responsibilityType,
+        public ?string $supplierId,
+        public int $sortOrder,
     ) {}
 
     public static function fromModel(AccountTemplateChecklist $checklist): self
@@ -25,9 +29,12 @@ final readonly class AccountTemplateChecklistData
             id: $checklist->id,
             name: $checklist->name,
             description: $checklist->description,
-            frequencyDays: $checklist->frequency_days,
+            frequencyValue: $checklist->frequency_value,
             frequencyType: $checklist->frequency_type,
             frequencyAnchor: $checklist->frequency_anchor,
+            responsibilityType: $checklist->responsibility_type,
+            supplierId: $checklist->supplier_id,
+            sortOrder: $checklist->sort_order,
         );
     }
 }
