@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace App\Data;
+namespace App\Data\Auth;
 
-use App\Models\Client;
+use App\Models\Admin;
 
-class ClientAuthenticatedUser extends AuthenticatedUser
+class AdminAuthenticatedUser extends AuthenticatedUser
 {
     public static function fromAuth(): self
     {
         $user = auth()->user();
 
-        if (!$user instanceof Client) {
-            throw new \Exception('Authenticated user is not a Client');
+        if (!$user instanceof Admin) {
+            throw new \Exception('Authenticated user is not an Admin');
         }
 
         return new self(

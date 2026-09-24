@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services\Staff;
 
+use App\Data\Auth\StaffAuthenticatedUser;
 use App\Data\CelebrantData;
-use App\Data\StaffAuthenticatedUser;
 use App\Dto\Request\CelebrantRequestDto;
 use App\Models\Celebrant;
 use App\Services\AddressService;

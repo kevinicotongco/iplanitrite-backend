@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Staff;
 
 use App\Data\AccountRoleData;
-use App\Data\StaffAuthenticatedUser;
+use App\Data\Auth\StaffAuthenticatedUser;
 use App\Dto\Request\AccountRoleRequestDto;
 use App\Models\AccountRole;
 use App\Models\AccountRolePermission;

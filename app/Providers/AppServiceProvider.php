@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
-use App\Data\AdminAuthenticatedUser;
-use App\Data\ClientAuthenticatedUser;
-use App\Data\StaffAuthenticatedUser;
-use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider

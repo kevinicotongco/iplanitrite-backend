@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Data;
+namespace App\Data\Auth;
 
 use App\Models\Staff;
+use Exception;
 
 class StaffAuthenticatedUser extends AuthenticatedUser
 {
@@ -26,7 +27,7 @@ class StaffAuthenticatedUser extends AuthenticatedUser
         $user = auth()->user();
 
         if (!$user instanceof Staff) {
-            throw new \Exception('Authenticated user is not a Staff member');
+            throw new Exception('Authenticated user is not a Staff member');
         }
 
         return new self(

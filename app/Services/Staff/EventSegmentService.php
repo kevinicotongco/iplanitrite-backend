@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services\Staff;
 
-use App\Data\StaffAuthenticatedUser;
+use App\Data\Auth\StaffAuthenticatedUser;
 use App\Dto\Request\InitialEventSegmentRequestDto;
 use App\Dto\Request\WeddingSegmentsRequestDto;
-use App\Enums\EventTypeEnum;
 use App\Models\Event;
 use App\Models\EventSegment;
 use App\Services\AddressService;
