@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Staff;
 
-use App\Data\StaffAuthenticatedUser;
+use App\Data\Auth\StaffAuthenticatedUser;
 use App\Enums\EventChecklistAssigneeTypeEnum;
 use App\Enums\ResponsibilityTypeEnum;
 use App\Models\EventChecklist;

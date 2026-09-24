@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Staff;
 
-use App\Data\StaffAuthenticatedUser;
+use App\Data\Auth\StaffAuthenticatedUser;
 use App\Data\StaffData;
 use App\Dto\Request\ManageStaffRequestDto;
 use App\Models\Account;

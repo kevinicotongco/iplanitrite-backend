@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace App\Services\Staff;
 
+use App\Data\Auth\StaffAuthenticatedUser;
 use App\Data\EventWithRelationsData;
-use App\Data\StaffAuthenticatedUser;
 use App\Dto\Request\CreateEventRequestDto;
 use App\Dto\Request\GetEventsRequestDto;
 use App\Dto\Request\UpdateEventRequestDto;
 use App\Dto\Request\WeddingCelebrantsRequestDto;
 use App\Enums\EventStatusEnum;
-use App\Enums\EventTypeEnum;
 use App\Models\Account;
 use App\Models\Client;
 use App\Models\Event;
