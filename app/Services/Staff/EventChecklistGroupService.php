@@ -20,9 +20,10 @@ readonly class EventChecklistGroupService
     /**
      * @param Event $event
      * @param string $accountId
+     * @param array<string> $clientIds
      * @return void
      */
-    public function copyTemplateChecklistsToEvent(Event $event, string $accountId): void
+    public function copyTemplateChecklistsToEvent(Event $event, string $accountId, array $clientIds): void
     {
         // Get template checklist groups for this account and event type
         $templateGroups = $this->templateChecklistGroupService->getTemplateGroupsWithChecklists(
@@ -45,12 +46,14 @@ readonly class EventChecklistGroupService
                 'updated_by' => $this->authenticatedUser->id,
             ]);
 
-            // Copy checklists from template to event
+            // Copy checklists from template to event with assignees
             foreach ($templateGroup->checklists as $templateChecklistData) {
                 $this->eventChecklistService->createChecklistFromTemplateData(
                     $eventGroup,
                     $templateChecklistData,
-                    $eventDate
+                    $eventDate,
+                    $this->authenticatedUser->id,
+                    $clientIds
                 );
             }
         }

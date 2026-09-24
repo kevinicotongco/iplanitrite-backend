@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\EventChecklistStatusEnum;
-use App\Enums\ResponsibilityTypeEnum;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class EventChecklist extends Model
@@ -23,7 +23,6 @@ class EventChecklist extends Model
     protected $casts = [
         'status' => EventChecklistStatusEnum::class,
         'due_date' => 'datetime',
-        'responsibility_type' => ResponsibilityTypeEnum::class,
     ];
 
     public function group(): BelongsTo
@@ -44,5 +43,10 @@ class EventChecklist extends Model
     public function supplier(): BelongsTo
     {
         return $this->belongsTo(Supplier::class, 'supplier_id');
+    }
+
+    public function assignees(): HasMany
+    {
+        return $this->hasMany(EventChecklistAssignee::class, 'event_checklist_id');
     }
 }

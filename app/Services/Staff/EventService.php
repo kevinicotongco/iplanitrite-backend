@@ -94,13 +94,14 @@ readonly class EventService
         $this->eventSegmentService->createEventSegments($event, $dto->segments, $countryId);
 
         // Create or get clients and attach to event
+        $clientIds = [];
         if (!empty($dto->clients)) {
             $clientIds = $this->clientService->createOrGetClients($accountId, $dto->name, $dto->clients);
             $this->eventClientService->attachClientsToEvent($event, $clientIds);
         }
 
-        // Copy template checklists to event checklists
-        $this->eventChecklistGroupService->copyTemplateChecklistsToEvent($event, $accountId);
+        // Copy template checklists to event checklists with assignees
+        $this->eventChecklistGroupService->copyTemplateChecklistsToEvent($event, $accountId, $clientIds);
     }
 
     /**

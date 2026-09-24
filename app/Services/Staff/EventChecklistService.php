@@ -17,20 +17,25 @@ readonly class EventChecklistService
     public function __construct(
         private Staff $authenticatedUser,
         private EventChecklist $eventChecklistModel,
+        private EventChecklistAssigneeService $eventChecklistAssigneeService,
     ) {}
 
     /**
-     * Create event checklist from template data
+     * Create event checklist from template data and create assignees
      *
      * @param EventChecklistGroup $eventGroup
      * @param AccountTemplateChecklistData $templateChecklistData
      * @param string|Carbon $eventDate
+     * @param string|null $staffId
+     * @param array<string> $clientIds
      * @return EventChecklist
      */
     public function createChecklistFromTemplateData(
         EventChecklistGroup $eventGroup,
         AccountTemplateChecklistData $templateChecklistData,
-        string|Carbon $eventDate
+        string|Carbon $eventDate,
+        ?string $staffId,
+        array $clientIds
     ): EventChecklist {
         $dueDate = null;
         if ($templateChecklistData->frequencyValue !== null &&
@@ -44,17 +49,26 @@ readonly class EventChecklistService
             );
         }
 
-        return $this->eventChecklistModel::create([
+        $eventChecklist = $this->eventChecklistModel::create([
             'event_checklist_group_id' => $eventGroup->id,
             'name' => $templateChecklistData->name,
             'description' => $templateChecklistData->description,
             'due_date' => $dueDate,
             'sort_order' => $templateChecklistData->sortOrder,
             'supplier_id' => $templateChecklistData->supplierId,
-            'responsibility_type' => $templateChecklistData->responsibilityType?->value,
             'created_by' => $this->authenticatedUser->id,
             'updated_by' => $this->authenticatedUser->id,
         ]);
+
+        // Create assignees based on responsibility type
+        $this->eventChecklistAssigneeService->createAssigneesForChecklist(
+            $eventChecklist,
+            $templateChecklistData->responsibilityType,
+            $staffId,
+            $clientIds
+        );
+
+        return $eventChecklist;
     }
 
     /**
