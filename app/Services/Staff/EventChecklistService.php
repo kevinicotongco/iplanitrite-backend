@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Staff;
 
 use App\Data\AccountTemplateChecklistData;
+use App\Enums\AuditActionEnum;
 use App\Enums\ChecklistFrequencyTypeEnum;
 use App\Enums\FrequencyAnchorEnum;
 use App\Models\EventChecklist;
@@ -15,10 +16,22 @@ use Carbon\Carbon;
 readonly class EventChecklistService
 {
     public function __construct(
-        private Staff $authenticatedUser,
         private EventChecklist $eventChecklistModel,
         private EventChecklistAssigneeService $eventChecklistAssigneeService,
+        private AuditLogService $auditLogService,
     ) {}
+
+    /**
+     * Get the authenticated staff user
+     */
+    private function getAuthenticatedUser(): Staff
+    {
+        $user = auth()->user();
+        if (!$user instanceof Staff) {
+            throw new \Exception('Authenticated user is not a Staff member');
+        }
+        return $user;
+    }
 
     /**
      * Create event checklist from template data and create assignees
@@ -56,9 +69,10 @@ readonly class EventChecklistService
             'due_date' => $dueDate,
             'sort_order' => $templateChecklistData->sortOrder,
             'supplier_id' => $templateChecklistData->supplierId,
-            'created_by' => $this->authenticatedUser->id,
-            'updated_by' => $this->authenticatedUser->id,
         ]);
+
+        // Log the create action
+        $this->auditLogService->logEventChecklistAction($eventChecklist, AuditActionEnum::Create);
 
         // Create assignees based on responsibility type
         $this->eventChecklistAssigneeService->createAssigneesForChecklist(

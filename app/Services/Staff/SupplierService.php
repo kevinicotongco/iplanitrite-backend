@@ -6,6 +6,8 @@ namespace App\Services\Staff;
 
 use App\Data\SupplierData;
 use App\Dto\Request\AddressRequestDto;
+use App\Enums\AuditActionEnum;
+use App\Models\Account;
 use App\Models\Supplier;
 use App\Models\Staff;
 use Illuminate\Support\Collection;
@@ -13,11 +15,23 @@ use Illuminate\Support\Collection;
 readonly class SupplierService
 {
     public function __construct(
-        private Staff $authenticatedUser,
         private Supplier $supplierModel,
         private ContactNumberService $contactNumberService,
         private AddressService $addressService,
+        private AuditLogService $auditLogService,
     ) {}
+
+    /**
+     * Get the authenticated staff user
+     */
+    private function getAuthenticatedUser(): Staff
+    {
+        $user = auth()->user();
+        if (!$user instanceof Staff) {
+            throw new \Exception('Authenticated user is not a Staff member');
+        }
+        return $user;
+    }
 
     /**
      * Get all suppliers for the authenticated user's account
@@ -26,7 +40,8 @@ readonly class SupplierService
      */
     public function getAllSuppliers(): Collection
     {
-        $suppliers = $this->supplierModel::where('account_id', $this->authenticatedUser->account_id)
+        $authenticatedUser = $this->getAuthenticatedUser();
+        $suppliers = $this->supplierModel::where('account_id', $authenticatedUser->account_id)
             ->get();
 
         return $suppliers->map(fn(Supplier $supplier) => SupplierData::fromModel($supplier));
@@ -40,8 +55,9 @@ readonly class SupplierService
      */
     public function getSupplierById(string $supplierId): SupplierData
     {
+        $authenticatedUser = $this->getAuthenticatedUser();
         $supplier = $this->supplierModel::where('id', $supplierId)
-            ->where('account_id', $this->authenticatedUser->account_id)
+            ->where('account_id', $authenticatedUser->account_id)
             ->firstOrFail();
 
         return SupplierData::fromModel($supplier);
@@ -62,8 +78,11 @@ readonly class SupplierService
         string $contactNumber,
         AddressRequestDto $addressDto
     ): SupplierData {
+        $authenticatedUser = $this->getAuthenticatedUser();
+
         // Get account's country ID
-        $countryId = $this->authenticatedUser->account->country_id;
+        $account = Account::findOrFail($authenticatedUser->account_id);
+        $countryId = $account->country_id;
 
         // Create contact number
         $contactNumberData = $this->contactNumberService->createContactNumber($contactNumber, $countryId);
@@ -73,12 +92,15 @@ readonly class SupplierService
 
         // Create supplier
         $supplier = $this->supplierModel::create([
-            'account_id' => $this->authenticatedUser->account_id,
+            'account_id' => $authenticatedUser->account_id,
             'company_name' => $companyName,
             'contact_person' => $contactPerson,
             'contact_number_id' => $contactNumberData->id,
             'address_id' => $addressData->id,
         ]);
+
+        // Log the create action
+        $this->auditLogService->logSupplierAction($supplier, AuditActionEnum::Create);
 
         return SupplierData::fromModel($supplier);
     }
@@ -100,12 +122,15 @@ readonly class SupplierService
         string $contactNumber,
         AddressRequestDto $addressDto
     ): void {
+        $authenticatedUser = $this->getAuthenticatedUser();
+
         $supplier = $this->supplierModel::where('id', $supplierId)
-            ->where('account_id', $this->authenticatedUser->account_id)
+            ->where('account_id', $authenticatedUser->account_id)
             ->firstOrFail();
 
         // Get account's country ID
-        $countryId = $this->authenticatedUser->account->country_id;
+        $account = Account::findOrFail($authenticatedUser->account_id);
+        $countryId = $account->country_id;
 
         // Update contact number
         $this->contactNumberService->updateContactNumber(
@@ -126,6 +151,9 @@ readonly class SupplierService
             'company_name' => $companyName,
             'contact_person' => $contactPerson,
         ]);
+
+        // Log the update action
+        $this->auditLogService->logSupplierAction($supplier, AuditActionEnum::Update);
     }
 
     /**
@@ -136,10 +164,15 @@ readonly class SupplierService
      */
     public function deleteSupplier(string $supplierId): void
     {
+        $authenticatedUser = $this->getAuthenticatedUser();
+
         $supplier = $this->supplierModel::where('id', $supplierId)
-            ->where('account_id', $this->authenticatedUser->account_id)
+            ->where('account_id', $authenticatedUser->account_id)
             ->firstOrFail();
 
         $supplier->delete();
+
+        // Log the delete action
+        $this->auditLogService->logSupplierAction($supplier, AuditActionEnum::Delete);
     }
 }

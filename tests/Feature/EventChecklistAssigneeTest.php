@@ -6,7 +6,10 @@ namespace Tests\Feature;
 
 use App\Enums\AccountStatusEnum;
 use App\Enums\AccountSubscriptionTierEnum;
+use App\Enums\AuditActionEnum;
+use App\Enums\AuditTypeEnum;
 use App\Enums\ChecklistFrequencyTypeEnum;
+use App\Enums\ChecklistGroupTypeEnum;
 use App\Enums\EventChecklistAssigneeTypeEnum;
 use App\Enums\EventTypeEnum;
 use App\Enums\FrequencyAnchorEnum;
@@ -17,8 +20,11 @@ use App\Models\AccountTemplateChecklist;
 use App\Models\AccountTemplateChecklistGroup;
 use App\Models\Client;
 use App\Models\Country;
+use App\Models\EventChecklist;
 use App\Models\EventChecklistAssignee;
+use App\Models\EventChecklistGroup;
 use App\Models\Staff;
+use App\Notifications\EventCreatedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
@@ -88,6 +94,8 @@ class EventChecklistAssigneeTest extends TestCase
             'account_id' => $this->account->id,
             'name' => 'Test Group',
             'event_type' => EventTypeEnum::Birthday,
+            'checklist_type' => ChecklistGroupTypeEnum::General,
+            'sort_order' => 1,
         ]);
 
         AccountTemplateChecklist::create([
@@ -153,6 +161,28 @@ class EventChecklistAssigneeTest extends TestCase
             'assignee_id' => $client1->id,
             'assignee_type' => EventChecklistAssigneeTypeEnum::Client->value,
         ]);
+
+        // Verify EventCreatedNotification was sent to all clients
+        $client2 = Client::where('email', 'client2@example.com')->first();
+        Notification::assertSentTo([$client1, $client2], EventCreatedNotification::class);
+
+        // Verify audit logs were created for EventChecklistGroup
+        $eventGroup = EventChecklistGroup::first();
+        $this->assertDatabaseHas('event_checklist_group_logs', [
+            'event_checklist_group_id' => $eventGroup->id,
+            'audit_by' => $this->staff->id,
+            'audit_type' => AuditTypeEnum::Staff->value,
+            'action' => AuditActionEnum::Create->value,
+        ]);
+
+        // Verify audit logs were created for EventChecklist
+        $eventChecklist = EventChecklist::first();
+        $this->assertDatabaseHas('event_checklist_logs', [
+            'event_checklist_id' => $eventChecklist->id,
+            'audit_by' => $this->staff->id,
+            'audit_type' => AuditTypeEnum::Staff->value,
+            'action' => AuditActionEnum::Create->value,
+        ]);
     }
 
     public function test_checklist_with_responsibility_client_assigns_to_all_clients(): void
@@ -162,6 +192,8 @@ class EventChecklistAssigneeTest extends TestCase
             'account_id' => $this->account->id,
             'name' => 'Test Group',
             'event_type' => EventTypeEnum::Birthday,
+            'checklist_type' => ChecklistGroupTypeEnum::General,
+            'sort_order' => 1,
         ]);
 
         AccountTemplateChecklist::create([
@@ -243,6 +275,8 @@ class EventChecklistAssigneeTest extends TestCase
             'account_id' => $this->account->id,
             'name' => 'Test Group',
             'event_type' => EventTypeEnum::Birthday,
+            'checklist_type' => ChecklistGroupTypeEnum::General,
+            'sort_order' => 1,
         ]);
 
         AccountTemplateChecklist::create([
@@ -323,6 +357,8 @@ class EventChecklistAssigneeTest extends TestCase
             'account_id' => $this->account->id,
             'name' => 'Test Group',
             'event_type' => EventTypeEnum::Birthday,
+            'checklist_type' => ChecklistGroupTypeEnum::General,
+            'sort_order' => 1,
         ]);
 
         AccountTemplateChecklist::create([
@@ -384,8 +420,8 @@ class EventChecklistAssigneeTest extends TestCase
         // Staff Task: 1 staff
         // Client Task: 1 client
         // Both Task: 1 staff + 1 client
-        // Total: 5 assignees
-        $this->assertEquals(5, EventChecklistAssignee::count());
+        // Total: 4 assignees
+        $this->assertEquals(4, EventChecklistAssignee::count());
     }
 
     public function test_checklist_without_responsibility_type_creates_no_assignees(): void
@@ -395,6 +431,8 @@ class EventChecklistAssigneeTest extends TestCase
             'account_id' => $this->account->id,
             'name' => 'Test Group',
             'event_type' => EventTypeEnum::Birthday,
+            'checklist_type' => ChecklistGroupTypeEnum::General,
+            'sort_order' => 1,
         ]);
 
         AccountTemplateChecklist::create([

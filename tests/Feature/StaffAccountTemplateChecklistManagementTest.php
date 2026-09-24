@@ -94,7 +94,13 @@ class StaffAccountTemplateChecklistManagementTest extends TestCase
             'address_id' => $address->id,
         ]);
 
-        $this->token = (string) auth('staff')->login($this->staff);
+        // Login via API to get a real token
+        $response = $this->postJson('/api/staff/login', [
+            'email' => 'staff@test.com',
+            'password' => 'password123',
+        ]);
+
+        $this->token = $response->json('token');
     }
 
     public function test_staff_can_create_checklist(): void

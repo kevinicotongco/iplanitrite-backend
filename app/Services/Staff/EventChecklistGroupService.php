@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Staff;
 
+use App\Enums\AuditActionEnum;
 use App\Models\Event;
 use App\Models\EventChecklistGroup;
 use App\Models\Staff;
@@ -11,11 +12,23 @@ use App\Models\Staff;
 readonly class EventChecklistGroupService
 {
     public function __construct(
-        private Staff $authenticatedUser,
         private EventChecklistGroup $eventChecklistGroupModel,
         private EventChecklistService $eventChecklistService,
         private AccountTemplateChecklistGroupService $templateChecklistGroupService,
+        private AuditLogService $auditLogService,
     ) {}
+
+    /**
+     * Get the authenticated staff user
+     */
+    private function getAuthenticatedUser(): Staff
+    {
+        $user = auth()->user();
+        if (!$user instanceof Staff) {
+            throw new \Exception('Authenticated user is not a Staff member');
+        }
+        return $user;
+    }
 
     /**
      * @param Event $event
@@ -25,6 +38,8 @@ readonly class EventChecklistGroupService
      */
     public function copyTemplateChecklistsToEvent(Event $event, string $accountId, array $clientIds): void
     {
+        $authenticatedUser = $this->getAuthenticatedUser();
+
         // Get template checklist groups for this account and event type
         $templateGroups = $this->templateChecklistGroupService->getTemplateGroupsWithChecklists(
             $accountId,
@@ -42,9 +57,10 @@ readonly class EventChecklistGroupService
                 'name' => $templateGroup->name,
                 'event_type' => $templateGroup->eventType,
                 'sort_order' => $templateGroup->sortOrder,
-                'created_by' => $this->authenticatedUser->id,
-                'updated_by' => $this->authenticatedUser->id,
             ]);
+
+            // Log the create action
+            $this->auditLogService->logEventChecklistGroupAction($eventGroup, AuditActionEnum::Create);
 
             // Copy checklists from template to event with assignees
             foreach ($templateGroup->checklists as $templateChecklistData) {
@@ -52,7 +68,7 @@ readonly class EventChecklistGroupService
                     $eventGroup,
                     $templateChecklistData,
                     $eventDate,
-                    $this->authenticatedUser->id,
+                    $authenticatedUser->id,
                     $clientIds
                 );
             }

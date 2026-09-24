@@ -11,8 +11,10 @@ use App\Dto\Request\UpdateEventRequestDto;
 use App\Dto\Request\WeddingCelebrantsRequestDto;
 use App\Enums\EventStatusEnum;
 use App\Enums\EventTypeEnum;
+use App\Models\Client;
 use App\Models\Event;
 use App\Models\Staff;
+use App\Notifications\EventCreatedNotification;
 use Illuminate\Support\Collection;
 
 readonly class EventService
@@ -102,6 +104,12 @@ readonly class EventService
 
         // Copy template checklists to event checklists with assignees
         $this->eventChecklistGroupService->copyTemplateChecklistsToEvent($event, $accountId, $clientIds);
+
+        // Send event created notifications to all clients
+        $clients = Client::whereIn('id', $clientIds)->get();
+        foreach ($clients as $client) {
+            $client->notify(new EventCreatedNotification($event));
+        }
     }
 
     /**

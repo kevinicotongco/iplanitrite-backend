@@ -53,7 +53,13 @@ class StaffAccountTemplateChecklistGroupManagementTest extends TestCase
             'last_name' => 'Staff',
         ]);
 
-        $this->token = (string) auth('staff')->login($this->staff);
+        // Login via API to get a real token
+        $response = $this->postJson('/api/staff/login', [
+            'email' => 'staff@test.com',
+            'password' => 'password123',
+        ]);
+
+        $this->token = $response->json('token');
     }
 
     public function test_staff_can_get_checklist_groups_by_type_and_event_type(): void

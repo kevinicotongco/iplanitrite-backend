@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Enums\AuditActionEnum;
+use App\Enums\AuditTypeEnum;
 use App\Models\Account;
 use App\Models\AccountRole;
 use App\Models\Address;
 use App\Models\ContactNumber;
 use App\Models\Staff;
 use App\Models\Supplier;
+use App\Models\SupplierLog;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -55,7 +58,7 @@ class StaffSupplierManagementTest extends TestCase
             'last_name' => 'Staff',
         ]);
 
-        $this->token = (string) auth('staff')->login($this->staff);
+        $this->token = $this->staff->createToken('test-token')->plainTextToken;
     }
 
     public function test_staff_can_get_all_suppliers(): void
@@ -75,14 +78,17 @@ class StaffSupplierManagementTest extends TestCase
             'country_id' => $this->account->country_id,
         ]);
 
-        Supplier::create([
-            'id' => Str::uuid()->toString(),
-            'account_id' => $this->account->id,
-            'company_name' => 'Test Supplier',
-            'contact_person' => 'John Doe',
-            'contact_number_id' => $contactNumber->id,
-            'address_id' => $address->id,
-        ]);
+        // Create supplier without observers to avoid auth requirements
+        Supplier::withoutEvents(function () use ($contactNumber, $address) {
+            return Supplier::create([
+                'id' => Str::uuid()->toString(),
+                'account_id' => $this->account->id,
+                'company_name' => 'Test Supplier',
+                'contact_person' => 'John Doe',
+                'contact_number_id' => $contactNumber->id,
+                'address_id' => $address->id,
+            ]);
+        });
 
         $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
             ->getJson('/api/staff/suppliers');
@@ -117,14 +123,16 @@ class StaffSupplierManagementTest extends TestCase
             'country_id' => $this->account->country_id,
         ]);
 
-        $supplier = Supplier::create([
-            'id' => Str::uuid()->toString(),
-            'account_id' => $this->account->id,
-            'company_name' => 'Test Supplier',
-            'contact_person' => 'John Doe',
-            'contact_number_id' => $contactNumber->id,
-            'address_id' => $address->id,
-        ]);
+        $supplier = Supplier::withoutEvents(function () use ($contactNumber, $address) {
+            return Supplier::create([
+                'id' => Str::uuid()->toString(),
+                'account_id' => $this->account->id,
+                'company_name' => 'Test Supplier',
+                'contact_person' => 'John Doe',
+                'contact_number_id' => $contactNumber->id,
+                'address_id' => $address->id,
+            ]);
+        });
 
         $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
             ->getJson('/api/staff/suppliers/' . $supplier->id);
@@ -162,6 +170,15 @@ class StaffSupplierManagementTest extends TestCase
             'company_name' => 'New Supplier',
             'contact_person' => 'Jane Smith',
         ]);
+
+        // Verify audit log was created
+        $supplier = Supplier::where('company_name', 'New Supplier')->first();
+        $this->assertDatabaseHas('supplier_logs', [
+            'supplier_id' => $supplier->id,
+            'audit_by' => $this->staff->id,
+            'audit_type' => AuditTypeEnum::Staff->value,
+            'action' => AuditActionEnum::Create->value,
+        ]);
     }
 
     public function test_staff_can_update_supplier(): void
@@ -181,14 +198,16 @@ class StaffSupplierManagementTest extends TestCase
             'country_id' => $this->account->country_id,
         ]);
 
-        $supplier = Supplier::create([
-            'id' => Str::uuid()->toString(),
-            'account_id' => $this->account->id,
-            'company_name' => 'Test Supplier',
-            'contact_person' => 'John Doe',
-            'contact_number_id' => $contactNumber->id,
-            'address_id' => $address->id,
-        ]);
+        $supplier = Supplier::withoutEvents(function () use ($contactNumber, $address) {
+            return Supplier::create([
+                'id' => Str::uuid()->toString(),
+                'account_id' => $this->account->id,
+                'company_name' => 'Test Supplier',
+                'contact_person' => 'John Doe',
+                'contact_number_id' => $contactNumber->id,
+                'address_id' => $address->id,
+            ]);
+        });
 
         $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
             ->putJson('/api/staff/suppliers/' . $supplier->id, [
@@ -210,6 +229,14 @@ class StaffSupplierManagementTest extends TestCase
             'company_name' => 'Updated Supplier',
             'contact_person' => 'Updated Person',
         ]);
+
+        // Verify audit log was created for update
+        $this->assertDatabaseHas('supplier_logs', [
+            'supplier_id' => $supplier->id,
+            'audit_by' => $this->staff->id,
+            'audit_type' => AuditTypeEnum::Staff->value,
+            'action' => AuditActionEnum::Update->value,
+        ]);
     }
 
     public function test_staff_can_delete_supplier(): void
@@ -229,14 +256,16 @@ class StaffSupplierManagementTest extends TestCase
             'country_id' => $this->account->country_id,
         ]);
 
-        $supplier = Supplier::create([
-            'id' => Str::uuid()->toString(),
-            'account_id' => $this->account->id,
-            'company_name' => 'Test Supplier',
-            'contact_person' => 'John Doe',
-            'contact_number_id' => $contactNumber->id,
-            'address_id' => $address->id,
-        ]);
+        $supplier = Supplier::withoutEvents(function () use ($contactNumber, $address) {
+            return Supplier::create([
+                'id' => Str::uuid()->toString(),
+                'account_id' => $this->account->id,
+                'company_name' => 'Test Supplier',
+                'contact_person' => 'John Doe',
+                'contact_number_id' => $contactNumber->id,
+                'address_id' => $address->id,
+            ]);
+        });
 
         $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
             ->deleteJson('/api/staff/suppliers/' . $supplier->id);
@@ -245,6 +274,14 @@ class StaffSupplierManagementTest extends TestCase
 
         $this->assertSoftDeleted('suppliers', [
             'id' => $supplier->id,
+        ]);
+
+        // Verify audit log was created for delete
+        $this->assertDatabaseHas('supplier_logs', [
+            'supplier_id' => $supplier->id,
+            'audit_by' => $this->staff->id,
+            'audit_type' => AuditTypeEnum::Staff->value,
+            'action' => AuditActionEnum::Delete->value,
         ]);
     }
 
