@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace App\Services\Staff;
 
 use App\Data\Auth\StaffAuthenticatedUser;
-use App\Dto\Request\InitialEventSegmentRequestDto;
+use App\Dto\Request\PrimaryEventSegmentRequestDto;
 use App\Dto\Request\WeddingSegmentsRequestDto;
 use App\Models\Event;
 use App\Models\EventSegment;
 use App\Services\AddressService;
+use Illuminate\Database\QueryException;
 
 readonly class EventSegmentService
 {
@@ -22,13 +23,13 @@ readonly class EventSegmentService
      * Create event segments based on event type
      *
      * @param Event $event
-     * @param WeddingSegmentsRequestDto|InitialEventSegmentRequestDto $segmentsDto
+     * @param WeddingSegmentsRequestDto|PrimaryEventSegmentRequestDto $segmentsDto
      * @param string $countryId
      * @return void
      */
     public function createEventSegments(
         Event $event,
-        WeddingSegmentsRequestDto|InitialEventSegmentRequestDto $segmentsDto,
+        WeddingSegmentsRequestDto|PrimaryEventSegmentRequestDto $segmentsDto,
         string $countryId
     ): void {
         if ($segmentsDto instanceof WeddingSegmentsRequestDto) {
@@ -43,12 +44,12 @@ readonly class EventSegmentService
      */
     private function createWeddingSegments(Event $event, WeddingSegmentsRequestDto $dto, string $countryId): void
     {
-        // Create Wedding segment
-        $this->createSingleSegment($event, $dto->wedding, $countryId, 'Wedding');
+        // Create Wedding segment (primary)
+        $this->createSingleSegment($event, $dto->wedding, $countryId, 'Wedding', true);
 
-        // Create Reception segment if provided
+        // Create Reception segment if provided (non-primary)
         if ($dto->reception) {
-            $this->createSingleSegment($event, $dto->reception, $countryId, 'Reception');
+            $this->createSingleSegment($event, $dto->reception, $countryId, 'Reception', false);
         }
     }
 
@@ -57,24 +58,44 @@ readonly class EventSegmentService
      */
     private function createSingleSegment(
         Event $event,
-        InitialEventSegmentRequestDto $dto,
+        PrimaryEventSegmentRequestDto $dto,
         string $countryId,
-        string $name
+        string $name,
+        bool $isPrimary = true
     ): EventSegment {
+        // Check if a primary segment already exists for this event (only if creating a primary segment)
+        if ($isPrimary) {
+            $existingPrimarySegment = EventSegment::where('event_id', $event->id)
+                ->where('is_primary', true)
+                ->exists();
+
+            if ($existingPrimarySegment) {
+                throw new \Exception('A primary segment already exists for this event. Only one primary segment is allowed per event.');
+            }
+        }
+
         // Create address for the segment
         $address = $this->addressService->createAddress($dto->address, $countryId);
 
         // Create the segment using DB::raw to ensure proper boolean casting for PostgreSQL
-        return EventSegment::create([
-            'event_id' => $event->id,
-            'name' => $name,
-            'is_primary' => \DB::raw('true'),
-            'date' => $dto->date,
-            'start_time' => $dto->startTime,
-            'end_time' => $dto->endTime,
-            'address_id' => $address->id,
-            'created_by' => $this->authenticatedUser->id,
-            'updated_by' => $this->authenticatedUser->id,
-        ]);
+        try {
+            return EventSegment::create([
+                'event_id' => $event->id,
+                'name' => $name,
+                'is_primary' => $isPrimary ? \DB::raw('true') : \DB::raw('false'),
+                'date' => $dto->date,
+                'start_time' => $dto->startTime,
+                'end_time' => $dto->endTime,
+                'address_id' => $address->id,
+                'created_by' => $this->authenticatedUser->id,
+                'updated_by' => $this->authenticatedUser->id,
+            ]);
+        } catch (QueryException $e) {
+            // Check if the exception is due to the unique constraint violation
+            if (str_contains($e->getMessage(), 'event_segments_event_id_is_primary_unique')) {
+                throw new \Exception('A primary segment already exists for this event. Only one primary segment is allowed per event.');
+            }
+            throw $e;
+        }
     }
 }

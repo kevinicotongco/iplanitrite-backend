@@ -12,6 +12,8 @@ use App\Models\EventChecklist;
 use App\Models\EventChecklistGroup;
 use App\Models\EventChecklistGroupLog;
 use App\Models\EventChecklistLog;
+use App\Models\EventThemeDocumentGroupLog;
+use App\Models\EventThemeDocumentLog;
 use App\Models\Staff;
 use App\Models\Supplier;
 use App\Models\SupplierLog;
@@ -62,6 +64,32 @@ readonly class AuditLogService
             'audit_type' => $auditInfo->auditType->value,
             'audit_date' => now(),
             'event_checklist_id' => $checklist->id,
+            'action' => $action->value,
+        ]);
+    }
+
+    /**
+     * Log an event theme document group action
+     */
+    public function logEventThemeDocumentGroup(string $groupId, string $auditBy, AuditTypeEnum $auditType, AuditActionEnum $action): void
+    {
+        EventThemeDocumentGroupLog::create([
+            'audit_by' => $auditBy,
+            'audit_type' => $auditType->value,
+            'event_theme_document_group_id' => $groupId,
+            'action' => $action->value,
+        ]);
+    }
+
+    /**
+     * Log an event theme document action
+     */
+    public function logEventThemeDocument(string $themeDocumentId, string $auditBy, AuditTypeEnum $auditType, AuditActionEnum $action): void
+    {
+        EventThemeDocumentLog::create([
+            'audit_by' => $auditBy,
+            'audit_type' => $auditType->value,
+            'event_theme_document_id' => $themeDocumentId,
             'action' => $action->value,
         ]);
     }

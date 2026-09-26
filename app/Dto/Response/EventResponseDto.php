@@ -13,15 +13,18 @@ readonly class EventResponseDto
      * @param array<EventSegmentResponseDto> $primarySegments
      */
     public function __construct(
-        public string                $id,
-        public string                $accountId,
-        public string                $name,
-        public ?string               $description,
-        public string                $status,
-        public string                $eventType,
-        public ?CelebrantResponseDto $celebrantOne,
-        public ?CelebrantResponseDto $celebrantTwo,
-        public array                 $primarySegments,
+        public string                 $id,
+        public string                 $accountId,
+        public string                 $name,
+        public ?string                $description,
+        public string                 $status,
+        public string                 $eventType,
+        public CelebrantResponseDto   $celebrantOne,
+        public ?CelebrantResponseDto  $celebrantTwo,
+        public array                  $primarySegments,
+        public ?DocumentResponseDto   $thumbnail,
+        public ?string                $dressCode,
+        public ?string                $theme,
     ) {}
 
     public static function fromModel(Event $event): self
@@ -44,6 +47,11 @@ readonly class EventResponseDto
                 ? CelebrantResponseDto::fromModel($event->celebrantTwo)
                 : null,
             primarySegments: $primarySegments,
+            thumbnail: $event->thumbnail
+                ? DocumentResponseDto::fromModel($event->thumbnail)
+                : null,
+            dressCode: $event->dress_code,
+            theme: $event->theme,
         );
     }
 
@@ -71,13 +79,14 @@ readonly class EventResponseDto
             description: $eventData->description,
             status: $eventData->status->value,
             eventType: $eventData->eventType->value,
-            celebrantOne: $eventData->celebrantOne
-                ? CelebrantResponseDto::fromCelebrantData($eventData->celebrantOne)
-                : null,
+            celebrantOne: CelebrantResponseDto::fromCelebrantData($eventData->celebrantOne),
             celebrantTwo: $eventData->celebrantTwo
                 ? CelebrantResponseDto::fromCelebrantData($eventData->celebrantTwo)
                 : null,
             primarySegments: $primarySegments,
+            thumbnail: null,
+            dressCode: null,
+            theme: null,
         );
     }
 
@@ -96,6 +105,9 @@ readonly class EventResponseDto
             'celebrantOne' => $this->celebrantOne?->toArray(),
             'celebrantTwo' => $this->celebrantTwo?->toArray(),
             'primarySegments' => array_map(fn($segment) => $segment->toArray(), $this->primarySegments),
+            'thumbnail' => $this->thumbnail?->toArray(),
+            'dressCode' => $this->dressCode,
+            'theme' => $this->theme,
         ];
     }
 }

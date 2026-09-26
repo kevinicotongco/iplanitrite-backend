@@ -16,8 +16,11 @@ readonly class CreateEventRequestDto
         public ?string $description,
         public EventTypeEnum $eventType,
         public WeddingCelebrantsRequestDto|CelebrantRequestDto $celebrants,
-        public WeddingSegmentsRequestDto|InitialEventSegmentRequestDto $segments,
+        public WeddingSegmentsRequestDto|PrimaryEventSegmentRequestDto $segments,
         public array $clients,
+        public ?string $thumbnailId,
+        public ?string $dressCode,
+        public ?string $theme,
     ) {}
 
     /**
@@ -38,7 +41,7 @@ readonly class CreateEventRequestDto
             $segments = WeddingSegmentsRequestDto::fromArray($data['segments']);
         } else {
             $celebrants = CelebrantRequestDto::fromArray($data['celebrant']);
-            $segments = InitialEventSegmentRequestDto::fromArray($data['segment']);
+            $segments = PrimaryEventSegmentRequestDto::fromArray($data['segment']);
         }
 
         return new self(
@@ -48,6 +51,9 @@ readonly class CreateEventRequestDto
             celebrants: $celebrants,
             segments: $segments,
             clients: $clients,
+            thumbnailId: $data['thumbnailId'] ?? null,
+            dressCode: $data['dressCode'] ?? null,
+            theme: $data['theme'] ?? null,
         );
     }
 }

@@ -1396,4 +1396,308 @@ class StaffEventManagementTest extends TestCase
         $expectedDueDate = now()->addMonths(1)->format('Y-m-d');
         $this->assertEquals($expectedDueDate, $checklist->due_date->format('Y-m-d'));
     }
+
+    // New Fields Tests (thumbnail, dressCode, theme)
+
+    public function test_can_create_event_with_new_fields(): void
+    {
+        $document = \App\Models\Document::create([
+            'id' => Str::uuid()->toString(),
+            'name' => 'thumbnail.jpg',
+            'display_name' => 'Event Thumbnail',
+            'url' => 'https://example.com/thumbnail.jpg',
+            'size' => 1024,
+            'mime_type' => 'image/jpeg',
+        ]);
+
+        $eventData = [
+            'name' => 'Elegant Wedding',
+            'description' => 'A beautiful celebration',
+            'eventType' => EventTypeEnum::Wedding->value,
+            'thumbnailId' => $document->id,
+            'dressCode' => 'Black Tie',
+            'theme' => 'Vintage Romance',
+            'celebrants' => [
+                'bride' => [
+                    'firstName' => 'Jane',
+                    'lastName' => 'Doe',
+                ],
+                'groom' => [
+                    'firstName' => 'John',
+                    'lastName' => 'Smith',
+                ],
+            ],
+            'segments' => [
+                'wedding' => [
+                    'date' => '2024-12-25',
+                    'startTime' => '14:00:00',
+                    'endTime' => '16:00:00',
+                    'address' => [
+                        'line1' => '123 Main St',
+                        'city' => 'New York',
+                        'state' => 'NY',
+                        'zip' => '10001',
+                    ],
+                ],
+            ],
+            'clients' => [
+                [
+                    'email' => 'client@example.com',
+                    'firstName' => 'Client',
+                    'lastName' => 'User',
+                ],
+            ],
+        ];
+
+        $response = $this->withToken($this->token)
+            ->postJson('/api/staff/events', $eventData);
+
+        $response->assertStatus(201);
+
+        $this->assertDatabaseHas('events', [
+            'name' => 'Elegant Wedding',
+            'thumbnail_id' => $document->id,
+            'dress_code' => 'Black Tie',
+            'theme' => 'Vintage Romance',
+        ]);
+    }
+
+    public function test_can_update_event_with_new_fields(): void
+    {
+        $document = \App\Models\Document::create([
+            'id' => Str::uuid()->toString(),
+            'name' => 'new-thumbnail.jpg',
+            'display_name' => 'New Thumbnail',
+            'url' => 'https://example.com/new-thumbnail.jpg',
+            'size' => 2048,
+            'mime_type' => 'image/jpeg',
+        ]);
+
+        $event = Event::factory()->create([
+            'account_id' => $this->account->id,
+            'name' => 'Original Event',
+            'event_type' => EventTypeEnum::Birthday,
+            'thumbnail_id' => null,
+            'dress_code' => null,
+            'theme' => null,
+        ]);
+        EventSegment::factory()->create(['event_id' => $event->id]);
+
+        $updateData = [
+            'name' => $event->name,
+            'status' => $event->status->value,
+            'eventType' => EventTypeEnum::Birthday->value,
+            'thumbnailId' => $document->id,
+            'dressCode' => 'Casual',
+            'theme' => 'Beach Party',
+            'celebrant' => [
+                'firstName' => $event->celebrantOne->first_name,
+                'lastName' => $event->celebrantOne->last_name,
+            ],
+        ];
+
+        $response = $this->withToken($this->token)
+            ->putJson("/api/staff/events/{$event->id}", $updateData);
+
+        $response->assertStatus(200);
+
+        $this->assertDatabaseHas('events', [
+            'id' => $event->id,
+            'thumbnail_id' => $document->id,
+            'dress_code' => 'Casual',
+            'theme' => 'Beach Party',
+        ]);
+    }
+
+    public function test_events_list_includes_new_fields(): void
+    {
+        $document = \App\Models\Document::create([
+            'id' => Str::uuid()->toString(),
+            'name' => 'thumb.jpg',
+            'display_name' => 'Thumbnail',
+            'url' => 'https://example.com/thumb.jpg',
+            'size' => 1024,
+            'mime_type' => 'image/jpeg',
+        ]);
+
+        $event = Event::factory()->create([
+            'account_id' => $this->account->id,
+            'name' => 'Test Event',
+            'status' => EventStatusEnum::Pending,
+            'thumbnail_id' => $document->id,
+            'dress_code' => 'Formal',
+            'theme' => 'Garden Party',
+        ]);
+
+        EventSegment::factory()->create([
+            'event_id' => $event->id,
+            'name' => 'Main Event',
+        ]);
+
+        $response = $this->withToken($this->token)
+            ->getJson('/api/staff/events');
+
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                '*' => [
+                    'thumbnail',
+                    'dressCode',
+                    'theme',
+                ],
+            ]);
+    }
+
+    // Dashboard Endpoint Tests
+
+    public function test_can_get_event_dashboard(): void
+    {
+        $event = Event::factory()->create([
+            'account_id' => $this->account->id,
+            'name' => 'Dashboard Test Event',
+            'description' => 'Testing dashboard',
+            'dress_code' => 'Smart Casual',
+            'theme' => 'Modern',
+        ]);
+
+        $segment = EventSegment::factory()->create([
+            'event_id' => $event->id,
+            'name' => 'Main',
+            'is_primary' => true,
+        ]);
+
+        $response = $this->withToken($this->token)
+            ->getJson("/api/staff/events/{$event->id}");
+
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'id',
+                'name',
+                'description',
+                'dressCode',
+                'theme',
+                'address',
+                'clients',
+                'thumbnail',
+                'documents',
+                'status',
+                'eventType',
+                'celebrantOne',
+                'celebrantTwo',
+                'primarySegment',
+                'guestsCount' => [
+                    'confirmed',
+                    'pending',
+                    'declined',
+                ],
+            ]);
+    }
+
+    public function test_dashboard_returns_404_for_nonexistent_event(): void
+    {
+        $fakeId = Str::uuid()->toString();
+
+        $response = $this->withToken($this->token)
+            ->getJson("/api/staff/events/{$fakeId}");
+
+        $response->assertStatus(404);
+    }
+
+    public function test_dashboard_returns_404_for_event_from_other_account(): void
+    {
+        $otherAccount = Account::create([
+            'id' => Str::uuid()->toString(),
+            'name' => 'Other Account',
+            'status' => AccountStatusEnum::Active,
+            'country_id' => $this->country->id,
+            'subscription_tier' => AccountSubscriptionTierEnum::Free,
+            'timezone' => 'America/New_York',
+        ]);
+
+        $event = Event::factory()->create([
+            'account_id' => $otherAccount->id,
+        ]);
+
+        EventSegment::factory()->create(['event_id' => $event->id]);
+
+        $response = $this->withToken($this->token)
+            ->getJson("/api/staff/events/{$event->id}");
+
+        $response->assertStatus(404);
+    }
+
+    public function test_unauthenticated_user_cannot_access_dashboard(): void
+    {
+        $event = Event::factory()->create([
+            'account_id' => $this->account->id,
+        ]);
+
+        EventSegment::factory()->create(['event_id' => $event->id]);
+
+        $response = $this->getJson("/api/staff/events/{$event->id}");
+
+        $response->assertStatus(401);
+    }
+
+    // Primary Segment Constraint Tests
+
+    public function test_only_one_primary_segment_allowed_per_event(): void
+    {
+        $event = Event::factory()->create([
+            'account_id' => $this->account->id,
+            'event_type' => EventTypeEnum::Birthday,
+        ]);
+
+        // Create first primary segment
+        EventSegment::factory()->create([
+            'event_id' => $event->id,
+            'name' => 'First Segment',
+            'is_primary' => true,
+        ]);
+
+        // Attempt to create second primary segment should fail with database constraint violation
+        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectExceptionMessage('event_segments_event_id_is_primary_unique');
+
+        EventSegment::create([
+            'id' => Str::uuid()->toString(),
+            'event_id' => $event->id,
+            'name' => 'Second Segment',
+            'is_primary' => \DB::raw('true'),
+            'date' => '2024-12-25',
+            'start_time' => '14:00:00',
+            'end_time' => '18:00:00',
+            'created_by' => $this->staff->id,
+            'updated_by' => $this->staff->id,
+        ]);
+    }
+
+    public function test_can_have_multiple_non_primary_segments(): void
+    {
+        $event = Event::factory()->create([
+            'account_id' => $this->account->id,
+            'event_type' => EventTypeEnum::Wedding,
+        ]);
+
+        // Create primary segment
+        EventSegment::factory()->create([
+            'event_id' => $event->id,
+            'name' => 'Wedding',
+            'is_primary' => true,
+        ]);
+
+        // Create non-primary segments (should work)
+        EventSegment::factory()->create([
+            'event_id' => $event->id,
+            'name' => 'Reception',
+            'is_primary' => false,
+        ]);
+
+        EventSegment::factory()->create([
+            'event_id' => $event->id,
+            'name' => 'After Party',
+            'is_primary' => false,
+        ]);
+
+        $this->assertEquals(3, EventSegment::where('event_id', $event->id)->count());
+    }
 }

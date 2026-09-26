@@ -7,8 +7,8 @@ namespace App\Dto\Request;
 readonly class WeddingSegmentsRequestDto
 {
     public function __construct(
-        public InitialEventSegmentRequestDto $wedding,
-        public ?InitialEventSegmentRequestDto $reception,
+        public PrimaryEventSegmentRequestDto $wedding,
+        public ?PrimaryEventSegmentRequestDto $reception,
     ) {}
 
     /**
@@ -17,8 +17,8 @@ readonly class WeddingSegmentsRequestDto
     public static function fromArray(array $data): self
     {
         return new self(
-            wedding: InitialEventSegmentRequestDto::fromArray($data['wedding']),
-            reception: isset($data['reception']) ? InitialEventSegmentRequestDto::fromArray($data['reception']) : null,
+            wedding: PrimaryEventSegmentRequestDto::fromArray($data['wedding']),
+            reception: isset($data['reception']) ? PrimaryEventSegmentRequestDto::fromArray($data['reception']) : null,
         );
     }
 }

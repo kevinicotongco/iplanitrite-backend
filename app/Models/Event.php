@@ -79,4 +79,14 @@ class Event extends Model
     {
         return $this->hasMany(EventSegment::class)->where('is_primary', '=', \DB::raw('true'));
     }
+
+    public function thumbnail(): BelongsTo
+    {
+        return $this->belongsTo(Document::class, 'thumbnail_id');
+    }
+
+    public function themeDocumentGroups(): HasMany
+    {
+        return $this->hasMany(EventThemeDocumentGroup::class);
+    }
 }

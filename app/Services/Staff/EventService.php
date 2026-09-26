@@ -41,7 +41,8 @@ readonly class EventService
                 'celebrantOne.contactNumber',
                 'celebrantTwo.address',
                 'celebrantTwo.contactNumber',
-                'primarySegments.address'
+                'primarySegments.address',
+                'thumbnail'
             ]);
 
         if ($dto->searchText) {
@@ -88,6 +89,9 @@ readonly class EventService
             'event_type' => $dto->eventType,
             'celebrant_one_id' => $celebrantOne->id,
             'celebrant_two_id' => $celebrantTwo?->id,
+            'thumbnail_id' => $dto->thumbnailId,
+            'dress_code' => $dto->dressCode,
+            'theme' => $dto->theme,
             'created_by' => $this->authenticatedUser->id,
             'updated_by' => $this->authenticatedUser->id,
         ]);
@@ -151,9 +155,30 @@ readonly class EventService
             'description' => $dto->description,
             'status' => $dto->status,
             'event_type' => $dto->eventType,
+            'thumbnail_id' => $dto->thumbnailId,
+            'dress_code' => $dto->dressCode,
+            'theme' => $dto->theme,
             'updated_by' => $this->authenticatedUser->id,
         ]);
     }
 
-
+    public function getEventById(string $eventId): Event
+    {
+        return $this->eventModel::where('id', $eventId)
+            ->where('account_id', $this->authenticatedUser->accountId)
+            ->with([
+                'celebrantOne.address',
+                'celebrantOne.contactNumber',
+                'celebrantTwo.address',
+                'celebrantTwo.contactNumber',
+                'primarySegments.address',
+                'thumbnail',
+                'themeDocumentGroups.themeDocuments.document',
+                'clients.address',
+                'clients.contactNumber',
+                'clients.profilePictureDocument',
+                'guestGroups.guests'
+            ])
+            ->firstOrFail();
+    }
 }

@@ -15,6 +15,9 @@ readonly class UpdateEventRequestDto
         public EventStatusEnum $status,
         public EventTypeEnum $eventType,
         public WeddingCelebrantsRequestDto|CelebrantRequestDto $celebrants,
+        public ?string $thumbnailId,
+        public ?string $dressCode,
+        public ?string $theme,
     ) {}
 
     /**
@@ -37,6 +40,9 @@ readonly class UpdateEventRequestDto
             status: EventStatusEnum::from($data['status']),
             eventType: $eventType,
             celebrants: $celebrants,
+            thumbnailId: $data['thumbnailId'] ?? null,
+            dressCode: $data['dressCode'] ?? null,
+            theme: $data['theme'] ?? null,
         );
     }
 }

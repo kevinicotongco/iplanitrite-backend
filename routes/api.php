@@ -117,6 +117,9 @@ Route::middleware(['auth:staff', BindAuthenticatedUser::class])->prefix('staff')
     Route::get('/events', [EventController::class, 'index'])
         ->name('staff.events.index');
 
+    Route::get('/events/{id}', [EventController::class, 'show'])
+        ->name('staff.events.show');
+
     Route::post('/events', [EventController::class, 'store'])
         ->name('staff.events.store');
 
