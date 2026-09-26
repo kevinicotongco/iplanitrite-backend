@@ -10,6 +10,7 @@ use App\Dto\Request\WeddingSegmentsRequestDto;
 use App\Models\Event;
 use App\Models\EventSegment;
 use App\Services\AddressService;
+use Exception;
 use Illuminate\Database\QueryException;
 
 readonly class EventSegmentService
@@ -21,11 +22,11 @@ readonly class EventSegmentService
 
     /**
      * Create event segments based on event type
-     *
      * @param Event $event
      * @param WeddingSegmentsRequestDto|PrimaryEventSegmentRequestDto $segmentsDto
      * @param string $countryId
      * @return void
+     * @throws Exception
      */
     public function createEventSegments(
         Event $event,
@@ -41,6 +42,7 @@ readonly class EventSegmentService
 
     /**
      * Create wedding segments (wedding and optional reception)
+     * @throws Exception
      */
     private function createWeddingSegments(Event $event, WeddingSegmentsRequestDto $dto, string $countryId): void
     {
@@ -55,6 +57,7 @@ readonly class EventSegmentService
 
     /**
      * Create a single event segment
+     * @throws Exception
      */
     private function createSingleSegment(
         Event $event,
@@ -62,7 +65,8 @@ readonly class EventSegmentService
         string $countryId,
         string $name,
         bool $isPrimary = true
-    ): EventSegment {
+    ): void
+    {
         // Check if a primary segment already exists for this event (only if creating a primary segment)
         if ($isPrimary) {
             $existingPrimarySegment = EventSegment::where('event_id', $event->id)
@@ -70,7 +74,7 @@ readonly class EventSegmentService
                 ->exists();
 
             if ($existingPrimarySegment) {
-                throw new \Exception('A primary segment already exists for this event. Only one primary segment is allowed per event.');
+                throw new Exception('A primary segment already exists for this event. Only one primary segment is allowed per event.');
             }
         }
 
@@ -79,7 +83,7 @@ readonly class EventSegmentService
 
         // Create the segment using DB::raw to ensure proper boolean casting for PostgreSQL
         try {
-            return EventSegment::create([
+            EventSegment::create([
                 'event_id' => $event->id,
                 'name' => $name,
                 'is_primary' => $isPrimary ? \DB::raw('true') : \DB::raw('false'),
@@ -90,10 +94,11 @@ readonly class EventSegmentService
                 'created_by' => $this->authenticatedUser->id,
                 'updated_by' => $this->authenticatedUser->id,
             ]);
+            return;
         } catch (QueryException $e) {
             // Check if the exception is due to the unique constraint violation
             if (str_contains($e->getMessage(), 'event_segments_event_id_is_primary_unique')) {
-                throw new \Exception('A primary segment already exists for this event. Only one primary segment is allowed per event.');
+                throw new Exception('A primary segment already exists for this event. Only one primary segment is allowed per event.');
             }
             throw $e;
         }

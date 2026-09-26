@@ -15,6 +15,7 @@ use App\Models\Account;
 use App\Models\Client;
 use App\Models\Event;
 use App\Notifications\EventCreatedNotification;
+use Exception;
 use Illuminate\Support\Collection;
 
 readonly class EventService
@@ -63,6 +64,7 @@ readonly class EventService
      *
      * @param CreateEventRequestDto $dto
      * @return void
+     * @throws Exception
      */
     public function createEvent(CreateEventRequestDto $dto): void
     {
