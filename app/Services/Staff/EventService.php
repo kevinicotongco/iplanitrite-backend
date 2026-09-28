@@ -164,6 +164,13 @@ readonly class EventService
         ]);
     }
 
+    public function getEventForAccount(string $eventId): Event
+    {
+        return $this->eventModel::where('id', $eventId)
+            ->where('account_id', $this->authenticatedUser->accountId)
+            ->firstOrFail();
+    }
+
     public function getEventById(string $eventId): Event
     {
         return $this->eventModel::where('id', $eventId)

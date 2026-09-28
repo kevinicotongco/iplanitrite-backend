@@ -36,6 +36,22 @@ readonly class StaffManagementService
     }
 
     /**
+     * @param array<int, string> $staffIds
+     * @return array<int, string>
+     */
+    public function getStaffIdsInAccount(array $staffIds): array
+    {
+        if ($staffIds === []) {
+            return [];
+        }
+
+        return Staff::where('account_id', $this->authenticatedUser->accountId)
+            ->whereIn('id', $staffIds)
+            ->pluck('id')
+            ->all();
+    }
+
+    /**
      * @param ManageStaffRequestDto $dto
      * @return void
      */

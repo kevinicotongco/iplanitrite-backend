@@ -6,6 +6,8 @@ use App\Http\Controllers\Client\ClientUserController;
 use App\Http\Controllers\Staff\AccountRoleController;
 use App\Http\Controllers\Staff\AccountTemplateChecklistController;
 use App\Http\Controllers\Staff\AccountTemplateChecklistGroupController;
+use App\Http\Controllers\Staff\EventChecklistController;
+use App\Http\Controllers\Staff\EventChecklistGroupController;
 use App\Http\Controllers\Staff\EventController;
 use App\Http\Controllers\Staff\StaffController;
 use App\Http\Controllers\Staff\StaffUserController;
@@ -125,6 +127,43 @@ Route::middleware(['auth:staff', BindAuthenticatedUser::class])->prefix('staff')
 
     Route::put('/events/{id}', [EventController::class, 'update'])
         ->name('staff.events.update');
+
+    // Event Checklist Group Management
+    Route::prefix('/events/{id}/checklist-groups')->whereUuid(['id', 'groupId', 'checklistId'])->group(function () {
+        Route::get('/', [EventChecklistGroupController::class, 'index'])
+            ->name('staff.event_checklist_groups.index');
+
+        Route::post('/', [EventChecklistGroupController::class, 'store'])
+            ->name('staff.event_checklist_groups.store');
+
+        Route::post('/sort', [EventChecklistGroupController::class, 'updateSort'])
+            ->name('staff.event_checklist_groups.update_sort');
+
+        Route::put('/{groupId}/name', [EventChecklistGroupController::class, 'updateName'])
+            ->name('staff.event_checklist_groups.update_name');
+
+        // Event Checklist Management
+        Route::post('/{groupId}/checklists', [EventChecklistController::class, 'store'])
+            ->name('staff.event_checklists.store');
+
+        Route::post('/{groupId}/checklists/sort', [EventChecklistController::class, 'updateSort'])
+            ->name('staff.event_checklists.update_sort');
+
+        Route::put('/{groupId}/checklists/{checklistId}/name', [EventChecklistController::class, 'updateName'])
+            ->name('staff.event_checklists.update_name');
+
+        Route::put('/{groupId}/checklists/{checklistId}/due-date', [EventChecklistController::class, 'updateDueDate'])
+            ->name('staff.event_checklists.update_due_date');
+
+        Route::put('/{groupId}/checklists/{checklistId}/status', [EventChecklistController::class, 'updateStatus'])
+            ->name('staff.event_checklists.update_status');
+
+        Route::put('/{groupId}/checklists/{checklistId}/assignee', [EventChecklistController::class, 'updateAssignees'])
+            ->name('staff.event_checklists.update_assignees');
+
+        Route::put('/{groupId}/checklists/{checklistId}/supplier', [EventChecklistController::class, 'updateSupplier'])
+            ->name('staff.event_checklists.update_supplier');
+    });
 
     // Supplier Management
     Route::get('/suppliers', [SupplierController::class, 'index'])

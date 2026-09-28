@@ -9,4 +9,5 @@ enum AuditActionEnum: string
     case Create = 'Create';
     case Update = 'Update';
     case Delete = 'Delete';
+    case Sort = 'Sort';
 }

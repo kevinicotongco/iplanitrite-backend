@@ -15,6 +15,24 @@ readonly class EventClientService
     ) {}
 
     /**
+     * @param Event $event
+     * @param array<int, string> $clientIds
+     * @return array<int, string>
+     */
+    public function getClientIdsAttachedToEvent(Event $event, array $clientIds): array
+    {
+        if ($clientIds === []) {
+            return [];
+        }
+
+        return $event->clients()
+            ->wherePivotNull('deleted_at')
+            ->whereIn('clients.id', $clientIds)
+            ->pluck('clients.id')
+            ->all();
+    }
+
+    /**
      * Attach clients to an event
      *
      * @param Event $event

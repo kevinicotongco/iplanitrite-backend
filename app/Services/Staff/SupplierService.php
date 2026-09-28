@@ -41,6 +41,14 @@ readonly class SupplierService
         return SupplierData::fromModel($supplier);
     }
 
+    public function getSupplierWithRelationsById(string $supplierId): Supplier
+    {
+        return $this->supplierModel::where('id', $supplierId)
+            ->where('account_id', $this->authenticatedUser->accountId)
+            ->with(['contactNumber', 'address.country'])
+            ->firstOrFail();
+    }
+
     public function createSupplier(
         string $companyName,
         string $contactPerson,

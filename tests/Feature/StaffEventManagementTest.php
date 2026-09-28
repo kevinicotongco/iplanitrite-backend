@@ -826,7 +826,7 @@ class StaffEventManagementTest extends TestCase
             'account_id' => $this->account->id,
             'name' => 'Birthday Checklist',
             'event_type' => EventTypeEnum::Birthday,
-            'checklist_type' => ChecklistGroupTypeEnum::General,
+            'checklist_type' => ChecklistGroupTypeEnum::Supplier,
             'sort_order' => 1,
         ]);
 
@@ -891,6 +891,7 @@ class StaffEventManagementTest extends TestCase
             'event_id' => $event->id,
             'name' => 'Birthday Checklist',
             'event_type' => 'Birthday',
+            'checklist_type' => 'Supplier',
         ]);
 
         $eventGroup = EventChecklistGroup::where('event_id', $event->id)->first();
