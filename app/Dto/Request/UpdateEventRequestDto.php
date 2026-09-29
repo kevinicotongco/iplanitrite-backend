@@ -18,6 +18,7 @@ readonly class UpdateEventRequestDto
         public ?string $thumbnailId,
         public ?string $dressCode,
         public ?string $theme,
+        public string $eventPackageId,
     ) {}
 
     /**
@@ -43,6 +44,7 @@ readonly class UpdateEventRequestDto
             thumbnailId: $data['thumbnailId'] ?? null,
             dressCode: $data['dressCode'] ?? null,
             theme: $data['theme'] ?? null,
+            eventPackageId: $data['eventPackageId'],
         );
     }
 }

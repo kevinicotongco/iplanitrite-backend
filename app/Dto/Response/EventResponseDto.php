@@ -25,6 +25,7 @@ readonly class EventResponseDto
         public ?DocumentResponseDto   $thumbnail,
         public ?string                $dressCode,
         public ?string                $theme,
+        public EventPackageResponseDto $package,
     ) {}
 
     public static function fromModel(Event $event): self
@@ -52,6 +53,7 @@ readonly class EventResponseDto
                 : null,
             dressCode: $event->dress_code,
             theme: $event->theme,
+            package: EventPackageResponseDto::fromModel($event->package),
         );
     }
 
@@ -87,6 +89,7 @@ readonly class EventResponseDto
             thumbnail: null,
             dressCode: null,
             theme: null,
+            package: EventPackageResponseDto::fromData($eventData->package),
         );
     }
 
@@ -108,6 +111,7 @@ readonly class EventResponseDto
             'thumbnail' => $this->thumbnail?->toArray(),
             'dressCode' => $this->dressCode,
             'theme' => $this->theme,
+            'package' => $this->package->toArray(),
         ];
     }
 }

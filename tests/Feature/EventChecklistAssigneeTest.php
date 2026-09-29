@@ -29,11 +29,12 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
+use Tests\Concerns\CreatesEventPackages;
 use Tests\TestCase;
 
 class EventChecklistAssigneeTest extends TestCase
 {
-    use RefreshDatabase;
+    use CreatesEventPackages, RefreshDatabase;
 
     private Staff $staff;
     private Account $account;
@@ -113,6 +114,7 @@ class EventChecklistAssigneeTest extends TestCase
         $eventData = [
             'name' => 'Test Event',
             'eventType' => EventTypeEnum::Birthday->value,
+            'eventPackageId' => $this->eventPackageIdFor($this->account->id, EventTypeEnum::Birthday),
             'celebrant' => [
                 'firstName' => 'John',
                 'lastName' => 'Doe',
@@ -211,6 +213,7 @@ class EventChecklistAssigneeTest extends TestCase
         $eventData = [
             'name' => 'Test Event',
             'eventType' => EventTypeEnum::Birthday->value,
+            'eventPackageId' => $this->eventPackageIdFor($this->account->id, EventTypeEnum::Birthday),
             'celebrant' => [
                 'firstName' => 'John',
                 'lastName' => 'Doe',
@@ -294,6 +297,7 @@ class EventChecklistAssigneeTest extends TestCase
         $eventData = [
             'name' => 'Test Event',
             'eventType' => EventTypeEnum::Birthday->value,
+            'eventPackageId' => $this->eventPackageIdFor($this->account->id, EventTypeEnum::Birthday),
             'celebrant' => [
                 'firstName' => 'John',
                 'lastName' => 'Doe',
@@ -388,6 +392,7 @@ class EventChecklistAssigneeTest extends TestCase
         $eventData = [
             'name' => 'Test Event',
             'eventType' => EventTypeEnum::Birthday->value,
+            'eventPackageId' => $this->eventPackageIdFor($this->account->id, EventTypeEnum::Birthday),
             'celebrant' => [
                 'firstName' => 'John',
                 'lastName' => 'Doe',
@@ -446,6 +451,7 @@ class EventChecklistAssigneeTest extends TestCase
         $eventData = [
             'name' => 'Test Event',
             'eventType' => EventTypeEnum::Birthday->value,
+            'eventPackageId' => $this->eventPackageIdFor($this->account->id, EventTypeEnum::Birthday),
             'celebrant' => [
                 'firstName' => 'John',
                 'lastName' => 'Doe',

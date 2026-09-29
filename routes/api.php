@@ -9,6 +9,8 @@ use App\Http\Controllers\Staff\AccountTemplateChecklistGroupController;
 use App\Http\Controllers\Staff\EventChecklistController;
 use App\Http\Controllers\Staff\EventChecklistGroupController;
 use App\Http\Controllers\Staff\EventController;
+use App\Http\Controllers\Staff\EventPackageController;
+use App\Http\Controllers\Staff\EventPriceController;
 use App\Http\Controllers\Staff\StaffController;
 use App\Http\Controllers\Staff\StaffUserController;
 use App\Http\Controllers\Staff\SupplierController;
@@ -127,6 +129,39 @@ Route::middleware(['auth:staff', BindAuthenticatedUser::class])->prefix('staff')
 
     Route::put('/events/{id}', [EventController::class, 'update'])
         ->name('staff.events.update');
+
+    // Event Price Management
+    Route::prefix('/events/{eventId}/prices')->whereUuid(['eventId', 'eventPriceId'])->group(function () {
+        Route::get('/', [EventPriceController::class, 'index'])
+            ->name('staff.event_prices.index');
+
+        Route::post('/', [EventPriceController::class, 'store'])
+            ->name('staff.event_prices.store');
+
+        Route::post('/sort', [EventPriceController::class, 'updateSort'])
+            ->name('staff.event_prices.update_sort');
+
+        Route::put('/{eventPriceId}', [EventPriceController::class, 'update'])
+            ->name('staff.event_prices.update');
+
+        Route::delete('/{eventPriceId}', [EventPriceController::class, 'destroy'])
+            ->name('staff.event_prices.destroy');
+    });
+
+    // Event Package Management
+    Route::prefix('/event-packages/{eventType}')->whereUuid('eventPackageId')->group(function () {
+        Route::get('/', [EventPackageController::class, 'index'])
+            ->name('staff.event_packages.index');
+
+        Route::post('/', [EventPackageController::class, 'store'])
+            ->name('staff.event_packages.store');
+
+        Route::put('/{eventPackageId}', [EventPackageController::class, 'update'])
+            ->name('staff.event_packages.update');
+
+        Route::delete('/{eventPackageId}', [EventPackageController::class, 'destroy'])
+            ->name('staff.event_packages.destroy');
+    });
 
     // Event Checklist Group Management
     Route::prefix('/events/{id}/checklist-groups')->whereUuid(['id', 'groupId', 'checklistId'])->group(function () {

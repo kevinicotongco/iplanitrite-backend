@@ -29,11 +29,12 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
+use Tests\Concerns\CreatesEventPackages;
 use Tests\TestCase;
 
 class StaffEventManagementTest extends TestCase
 {
-    use RefreshDatabase;
+    use CreatesEventPackages, RefreshDatabase;
 
     private Staff $staff;
     private Account $account;
@@ -191,6 +192,7 @@ class StaffEventManagementTest extends TestCase
             'name' => 'John\'s Birthday',
             'description' => 'A fun birthday party',
             'eventType' => EventTypeEnum::Birthday->value,
+            'eventPackageId' => $this->eventPackageIdFor($this->account->id, EventTypeEnum::Birthday),
             'celebrant' => [
                 'firstName' => 'John',
                 'middleName' => 'Michael',
@@ -254,6 +256,7 @@ class StaffEventManagementTest extends TestCase
             'name' => 'John and Jane Wedding',
             'description' => 'A beautiful wedding',
             'eventType' => EventTypeEnum::Wedding->value,
+            'eventPackageId' => $this->eventPackageIdFor($this->account->id, EventTypeEnum::Wedding),
             'celebrants' => [
                 'bride' => [
                     'firstName' => 'Jane',
@@ -326,6 +329,7 @@ class StaffEventManagementTest extends TestCase
         $eventData = [
             'name' => 'Test Event',
             'eventType' => EventTypeEnum::Debut->value,
+            'eventPackageId' => $this->eventPackageIdFor($this->account->id, EventTypeEnum::Debut),
             'celebrant' => [
                 'firstName' => 'John',
                 'lastName' => 'Doe',
@@ -378,6 +382,7 @@ class StaffEventManagementTest extends TestCase
         $eventData = [
             'name' => 'Test Event',
             'eventType' => EventTypeEnum::Baptism->value,
+            'eventPackageId' => $this->eventPackageIdFor($this->account->id, EventTypeEnum::Baptism),
             'celebrant' => [
                 'firstName' => 'John',
                 'lastName' => 'Doe',
@@ -415,6 +420,7 @@ class StaffEventManagementTest extends TestCase
     {
         $eventData = [
             'eventType' => EventTypeEnum::Wedding->value,
+            'eventPackageId' => $this->eventPackageIdFor($this->account->id, EventTypeEnum::Wedding),
             'celebrants' => [
                 'bride' => [
                     'firstName' => 'Jane',
@@ -459,6 +465,7 @@ class StaffEventManagementTest extends TestCase
         $eventData = [
             'name' => 'Test Event',
             'eventType' => EventTypeEnum::Wedding->value,
+            'eventPackageId' => $this->eventPackageIdFor($this->account->id, EventTypeEnum::Wedding),
             'celebrants' => [
                 'bride' => [
                     'firstName' => 'Jane',
@@ -497,6 +504,7 @@ class StaffEventManagementTest extends TestCase
         $eventData = [
             'name' => 'Test Event',
             'eventType' => EventTypeEnum::Birthday->value,
+            'eventPackageId' => $this->eventPackageIdFor($this->account->id, EventTypeEnum::Birthday),
             'celebrant' => [
                 'firstName' => 'John',
                 'lastName' => 'Doe',
@@ -543,6 +551,7 @@ class StaffEventManagementTest extends TestCase
             'description' => 'Updated description',
             'status' => 'Ongoing',
             'eventType' => EventTypeEnum::Birthday->value,
+            'eventPackageId' => $this->eventPackageIdFor($this->account->id, EventTypeEnum::Birthday),
             'celebrant' => [
                 'firstName' => 'Updated',
                 'lastName' => 'Name',
@@ -574,6 +583,7 @@ class StaffEventManagementTest extends TestCase
             'name' => $event->name,
             'status' => $event->status->value,
             'eventType' => EventTypeEnum::Wedding->value,
+            'eventPackageId' => $this->eventPackageIdFor($this->account->id, EventTypeEnum::Wedding),
             'celebrants' => [
                 'bride' => [
                     'firstName' => $event->celebrantOne->first_name,
@@ -616,6 +626,7 @@ class StaffEventManagementTest extends TestCase
             'name' => 'Updated Name',
             'status' => 'Ongoing',
             'eventType' => EventTypeEnum::Birthday->value,
+            'eventPackageId' => $this->eventPackageIdFor($this->account->id, EventTypeEnum::Birthday),
             'celebrant' => [
                 'firstName' => 'Updated',
                 'lastName' => 'Name',
@@ -640,6 +651,7 @@ class StaffEventManagementTest extends TestCase
             'name' => 'Updated Name',
             'status' => 'Ongoing',
             'eventType' => EventTypeEnum::Birthday->value,
+            'eventPackageId' => $this->eventPackageIdFor($this->account->id, EventTypeEnum::Birthday),
             'celebrant' => [
                 'firstName' => 'Updated',
                 'lastName' => 'Name',
@@ -658,6 +670,7 @@ class StaffEventManagementTest extends TestCase
         $eventData = [
             'name' => 'Test Event',
             'eventType' => EventTypeEnum::Birthday->value,
+            'eventPackageId' => $this->eventPackageIdFor($this->account->id, EventTypeEnum::Birthday),
             'celebrant' => [
                 'firstName' => 'John',
                 'lastName' => 'Doe',
@@ -713,6 +726,7 @@ class StaffEventManagementTest extends TestCase
             'name' => 'Updated Event Name',
             'status' => $event->status->value,
             'eventType' => EventTypeEnum::Birthday->value,
+            'eventPackageId' => $this->eventPackageIdFor($this->account->id, EventTypeEnum::Birthday),
             'celebrant' => [
                 'firstName' => $event->celebrantOne->first_name,
                 'lastName' => $event->celebrantOne->last_name,
@@ -765,6 +779,7 @@ class StaffEventManagementTest extends TestCase
                 'status' => EventStatusEnum::Pending,
                 'event_type' => EventTypeEnum::Wedding,
                 'celebrant_one_id' => Str::uuid()->toString(),
+                'event_package_id' => $this->eventPackageIdFor($this->account->id, EventTypeEnum::Wedding),
             ]);
         } catch (QueryException $e) {
             $this->assertStringContainsString('foreign key constraint', $e->getMessage());
@@ -795,6 +810,7 @@ class StaffEventManagementTest extends TestCase
                 'status' => EventStatusEnum::Pending,
                 'event_type' => EventTypeEnum::Birthday,
                 'celebrant_one_id' => Str::uuid()->toString(),
+                'event_package_id' => $this->eventPackageIdFor($this->account->id, EventTypeEnum::Birthday),
             ]);
         } catch (QueryException $e) {
             $this->assertStringContainsString('foreign key constraint', $e->getMessage());
@@ -856,6 +872,7 @@ class StaffEventManagementTest extends TestCase
         $eventData = [
             'name' => 'Birthday Party',
             'eventType' => EventTypeEnum::Birthday->value,
+            'eventPackageId' => $this->eventPackageIdFor($this->account->id, EventTypeEnum::Birthday),
             'celebrant' => [
                 'firstName' => 'John',
                 'lastName' => 'Doe',
@@ -952,6 +969,7 @@ class StaffEventManagementTest extends TestCase
         $eventData = [
             'name' => 'Wedding Event',
             'eventType' => EventTypeEnum::Wedding->value,
+            'eventPackageId' => $this->eventPackageIdFor($this->account->id, EventTypeEnum::Wedding),
             'celebrants' => [
                 'bride' => [
                     'firstName' => 'Jane',
@@ -1041,6 +1059,7 @@ class StaffEventManagementTest extends TestCase
             'name' => 'Birthday Party',
             'description' => 'Test event',
             'eventType' => EventTypeEnum::Birthday->value,
+            'eventPackageId' => $this->eventPackageIdFor($this->account->id, EventTypeEnum::Birthday),
             'celebrant' => [
                 'firstName' => 'John',
                 'lastName' => 'Doe',
@@ -1105,6 +1124,7 @@ class StaffEventManagementTest extends TestCase
             'name' => 'Birthday Party',
             'description' => 'Test event',
             'eventType' => EventTypeEnum::Birthday->value,
+            'eventPackageId' => $this->eventPackageIdFor($this->account->id, EventTypeEnum::Birthday),
             'celebrant' => [
                 'firstName' => 'John',
                 'lastName' => 'Doe',
@@ -1169,6 +1189,7 @@ class StaffEventManagementTest extends TestCase
             'name' => 'Birthday Party',
             'description' => 'Test event',
             'eventType' => EventTypeEnum::Birthday->value,
+            'eventPackageId' => $this->eventPackageIdFor($this->account->id, EventTypeEnum::Birthday),
             'celebrant' => [
                 'firstName' => 'John',
                 'lastName' => 'Doe',
@@ -1233,6 +1254,7 @@ class StaffEventManagementTest extends TestCase
             'name' => 'Birthday Party',
             'description' => 'Test event',
             'eventType' => EventTypeEnum::Birthday->value,
+            'eventPackageId' => $this->eventPackageIdFor($this->account->id, EventTypeEnum::Birthday),
             'celebrant' => [
                 'firstName' => 'John',
                 'lastName' => 'Doe',
@@ -1297,6 +1319,7 @@ class StaffEventManagementTest extends TestCase
             'name' => 'Birthday Party',
             'description' => 'Test event',
             'eventType' => EventTypeEnum::Birthday->value,
+            'eventPackageId' => $this->eventPackageIdFor($this->account->id, EventTypeEnum::Birthday),
             'celebrant' => [
                 'firstName' => 'John',
                 'lastName' => 'Doe',
@@ -1361,6 +1384,7 @@ class StaffEventManagementTest extends TestCase
             'name' => 'Birthday Party',
             'description' => 'Test event',
             'eventType' => EventTypeEnum::Birthday->value,
+            'eventPackageId' => $this->eventPackageIdFor($this->account->id, EventTypeEnum::Birthday),
             'celebrant' => [
                 'firstName' => 'John',
                 'lastName' => 'Doe',
@@ -1415,6 +1439,7 @@ class StaffEventManagementTest extends TestCase
             'name' => 'Elegant Wedding',
             'description' => 'A beautiful celebration',
             'eventType' => EventTypeEnum::Wedding->value,
+            'eventPackageId' => $this->eventPackageIdFor($this->account->id, EventTypeEnum::Wedding),
             'thumbnailId' => $document->id,
             'dressCode' => 'Black Tie',
             'theme' => 'Vintage Romance',
@@ -1488,6 +1513,7 @@ class StaffEventManagementTest extends TestCase
             'name' => $event->name,
             'status' => $event->status->value,
             'eventType' => EventTypeEnum::Birthday->value,
+            'eventPackageId' => $this->eventPackageIdFor($this->account->id, EventTypeEnum::Birthday),
             'thumbnailId' => $document->id,
             'dressCode' => 'Casual',
             'theme' => 'Beach Party',

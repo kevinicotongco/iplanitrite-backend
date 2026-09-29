@@ -32,6 +32,7 @@ class UpdateEventRequest extends FormRequest
             'thumbnailId' => ['nullable', 'uuid', 'exists:documents,id'],
             'dressCode' => ['nullable', 'string', 'max:255'],
             'theme' => ['nullable', 'string', 'max:255'],
+            'eventPackageId' => ['required', 'uuid'],
         ];
 
         if ($isWedding) {

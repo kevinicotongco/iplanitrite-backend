@@ -10,6 +10,7 @@ use App\Models\Address;
 use App\Models\Celebrant;
 use App\Models\Event;
 use App\Models\Account;
+use App\Models\EventPackage;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -32,6 +33,10 @@ class EventFactory extends Factory
             'event_type' => fake()->randomElement(EventTypeEnum::cases()),
             'celebrant_one_id' => Celebrant::factory(),
             'celebrant_two_id' => null,
+            'event_package_id' => fn(array $attributes): string => EventPackage::factory()->create([
+                'account_id' => $attributes['account_id'],
+                'event_type' => $attributes['event_type'],
+            ])->id,
             'created_by' => null,
             'updated_by' => null,
         ];

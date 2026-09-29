@@ -28,6 +28,8 @@ readonly class EventService
         private EventClientService $eventClientService,
         private EventChecklistGroupService $eventChecklistGroupService,
         private EventSegmentService $eventSegmentService,
+        private EventPackageService $eventPackageService,
+        private EventPriceService $eventPriceService,
     ) {}
 
     /**
@@ -43,7 +45,8 @@ readonly class EventService
                 'celebrantTwo.address',
                 'celebrantTwo.contactNumber',
                 'primarySegments.address',
-                'thumbnail'
+                'thumbnail',
+                'package',
             ]);
 
         if ($dto->searchText) {
@@ -68,6 +71,8 @@ readonly class EventService
      */
     public function createEvent(CreateEventRequestDto $dto): void
     {
+        $eventPackage = $this->eventPackageService->getAssignablePackage($dto->eventPackageId, $dto->eventType);
+
         $account = Account::findOrFail($this->authenticatedUser->accountId);
         $countryId = $account->country_id;
 
@@ -94,9 +99,12 @@ readonly class EventService
             'thumbnail_id' => $dto->thumbnailId,
             'dress_code' => $dto->dressCode,
             'theme' => $dto->theme,
+            'event_package_id' => $eventPackage->id,
             'created_by' => $this->authenticatedUser->id,
             'updated_by' => $this->authenticatedUser->id,
         ]);
+
+        $this->eventPriceService->createInitialPrice($event, $eventPackage);
 
         // Create event segments
         $this->eventSegmentService->createEventSegments($event, $dto->segments, $countryId);
@@ -131,6 +139,13 @@ readonly class EventService
             ->where('account_id', $this->authenticatedUser->accountId)
             ->firstOrFail();
 
+        $isPackageChanged = $event->event_package_id !== $dto->eventPackageId;
+        $eventPackage = $this->eventPackageService->getAssignablePackage(
+            $dto->eventPackageId,
+            $dto->eventType,
+            allowDeleted: !$isPackageChanged,
+        );
+
         $account = Account::findOrFail($this->authenticatedUser->accountId);
         $countryId = $account->country_id;
 
@@ -160,8 +175,13 @@ readonly class EventService
             'thumbnail_id' => $dto->thumbnailId,
             'dress_code' => $dto->dressCode,
             'theme' => $dto->theme,
+            'event_package_id' => $eventPackage->id,
             'updated_by' => $this->authenticatedUser->id,
         ]);
+
+        if ($isPackageChanged) {
+            $this->eventPriceService->syncPackageRetailPrice($event, $eventPackage);
+        }
     }
 
     public function getEventForAccount(string $eventId): Event

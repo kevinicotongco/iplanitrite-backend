@@ -23,6 +23,7 @@ final readonly class EventWithRelationsData
         public ?CelebrantWithRelationsData $celebrantOne,
         public ?CelebrantWithRelationsData $celebrantTwo,
         public array                       $primarySegments,
+        public EventPackageData            $package,
     ) {}
 
     public static function fromModel(Event $event): self
@@ -41,6 +42,7 @@ final readonly class EventWithRelationsData
             celebrantOne: $event->celebrantOne ? CelebrantWithRelationsData::fromModel($event->celebrantOne) : null,
             celebrantTwo: $event->celebrantTwo ? CelebrantWithRelationsData::fromModel($event->celebrantTwo) : null,
             primarySegments: $primarySegments,
+            package: EventPackageData::fromModel($event->package),
         );
     }
 }

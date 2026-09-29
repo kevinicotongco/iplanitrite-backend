@@ -21,6 +21,7 @@ readonly class CreateEventRequestDto
         public ?string $thumbnailId,
         public ?string $dressCode,
         public ?string $theme,
+        public string $eventPackageId,
     ) {}
 
     /**
@@ -54,6 +55,7 @@ readonly class CreateEventRequestDto
             thumbnailId: $data['thumbnailId'] ?? null,
             dressCode: $data['dressCode'] ?? null,
             theme: $data['theme'] ?? null,
+            eventPackageId: $data['eventPackageId'],
         );
     }
 }

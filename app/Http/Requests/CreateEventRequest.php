@@ -30,6 +30,7 @@ class CreateEventRequest extends FormRequest
             'thumbnailId' => ['nullable', 'uuid', 'exists:documents,id'],
             'dressCode' => ['nullable', 'string', 'max:255'],
             'theme' => ['nullable', 'string', 'max:255'],
+            'eventPackageId' => ['required', 'uuid'],
             'clients' => ['required', 'array', 'min:1'],
             'clients.*.email' => ['required', 'email', 'max:255'],
             'clients.*.firstName' => ['required', 'string', 'max:255'],
