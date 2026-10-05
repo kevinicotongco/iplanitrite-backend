@@ -39,11 +39,6 @@ class Staff extends Authenticatable
         return $this->belongsTo(AccountRole::class, 'account_role_id');
     }
 
-    public function profilePictureDocument(): BelongsTo
-    {
-        return $this->belongsTo(Document::class, 'profile_picture');
-    }
-
     public function address(): BelongsTo
     {
         return $this->belongsTo(Address::class);

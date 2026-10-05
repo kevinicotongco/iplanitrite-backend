@@ -13,7 +13,6 @@ use App\Models\Address;
 use App\Models\Client;
 use App\Models\ContactNumber;
 use App\Models\Country;
-use App\Models\Document;
 use App\Models\Event;
 use App\Models\EventChecklist;
 use App\Models\EventChecklistGroup;
@@ -24,6 +23,8 @@ use Illuminate\Support\Str;
 
 trait CreatesEventChecklistFixtures
 {
+    protected const STAFF_PROFILE_PICTURE = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+
     protected Country $country;
     protected Account $account;
     protected Staff $staff;
@@ -41,7 +42,7 @@ trait CreatesEventChecklistFixtures
         $this->country = $this->createTestCountry();
         $this->account = $this->createAccount('Test Account');
 
-        $this->staff = $this->createStaff($this->account, 'staff@test.com', $this->createDocument('staff.png'));
+        $this->staff = $this->createStaff($this->account, 'staff@test.com', self::STAFF_PROFILE_PICTURE);
         $this->token = $this->loginStaff('staff@test.com');
 
         $this->event = $this->createEvent($this->account);
@@ -71,7 +72,7 @@ trait CreatesEventChecklistFixtures
         ]);
     }
 
-    protected function createStaff(Account $account, string $email, ?Document $profilePicture = null): Staff
+    protected function createStaff(Account $account, string $email, ?string $profilePicture = null): Staff
     {
         $role = AccountRole::create([
             'id' => Str::uuid()->toString(),
@@ -87,7 +88,7 @@ trait CreatesEventChecklistFixtures
             'password' => Hash::make('password123'),
             'first_name' => 'Test',
             'last_name' => 'Staff',
-            'profile_picture' => $profilePicture?->id,
+            'profile_picture' => $profilePicture,
         ]);
     }
 
@@ -100,18 +101,6 @@ trait CreatesEventChecklistFixtures
             'password' => Hash::make('password123'),
             'first_name' => 'Test',
             'last_name' => 'Client',
-        ]);
-    }
-
-    protected function createDocument(string $name): Document
-    {
-        return Document::create([
-            'id' => Str::uuid()->toString(),
-            'name' => $name,
-            'display_name' => $name,
-            'url' => 'https://example.com/' . $name,
-            'size' => 1024,
-            'mime_type' => 'image/png',
         ]);
     }
 

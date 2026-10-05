@@ -29,7 +29,7 @@ class UpdateEventRequest extends FormRequest
             'description' => ['nullable', 'string'],
             'status' => ['required', 'string', Rule::in(array_column(EventStatusEnum::cases(), 'value'))],
             'eventType' => ['required', 'string', Rule::in(array_column(EventTypeEnum::cases(), 'value'))],
-            'thumbnailId' => ['nullable', 'uuid', 'exists:documents,id'],
+            'thumbnailId' => ['nullable', 'uuid'],
             'dressCode' => ['nullable', 'string', 'max:255'],
             'theme' => ['nullable', 'string', 'max:255'],
             'eventPackageId' => ['required', 'uuid'],

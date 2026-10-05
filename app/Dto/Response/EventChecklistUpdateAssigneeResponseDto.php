@@ -12,7 +12,7 @@ readonly class EventChecklistUpdateAssigneeResponseDto
         public string $assigneeId,
         public string $assigneeType,
         public string $assigneeName,
-        public ?DocumentResponseDto $assigneeProfilePicture,
+        public ?string $assigneeProfilePicture,
     ) {}
 
     public static function fromData(EventChecklistAssigneeData $assigneeData): self
@@ -21,9 +21,7 @@ readonly class EventChecklistUpdateAssigneeResponseDto
             assigneeId: $assigneeData->assigneeId,
             assigneeType: $assigneeData->assigneeType->value,
             assigneeName: $assigneeData->assigneeName,
-            assigneeProfilePicture: $assigneeData->assigneeProfilePicture
-                ? DocumentResponseDto::fromModel($assigneeData->assigneeProfilePicture)
-                : null,
+            assigneeProfilePicture: $assigneeData->assigneeProfilePicture,
         );
     }
 
@@ -36,7 +34,7 @@ readonly class EventChecklistUpdateAssigneeResponseDto
             'assigneeId' => $this->assigneeId,
             'assigneeType' => $this->assigneeType,
             'assigneeName' => $this->assigneeName,
-            'assigneeProfilePicture' => $this->assigneeProfilePicture?->toArray(),
+            'assigneeProfilePicture' => $this->assigneeProfilePicture,
         ];
     }
 }

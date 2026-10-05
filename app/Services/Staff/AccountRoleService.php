@@ -7,6 +7,7 @@ namespace App\Services\Staff;
 use App\Data\AccountRoleData;
 use App\Data\Auth\StaffAuthenticatedUser;
 use App\Dto\Request\AccountRoleRequestDto;
+use App\Enums\AccountRolePermissionEnum;
 use App\Models\AccountRole;
 use App\Models\AccountRolePermission;
 use Illuminate\Support\Collection;
@@ -17,6 +18,14 @@ readonly class AccountRoleService
     public function __construct(
         private StaffAuthenticatedUser $authenticatedUser,
     ) {}
+
+    public function staffHasPermission(AccountRolePermissionEnum $permission): bool
+    {
+        return AccountRole::where('account_id', $this->authenticatedUser->accountId)
+            ->whereHas('staff', fn($query) => $query->where('id', $this->authenticatedUser->id))
+            ->whereHas('permissions', fn($query) => $query->where('permission', $permission->value))
+            ->exists();
+    }
 
     /**
      * @return Collection<AccountRoleData>

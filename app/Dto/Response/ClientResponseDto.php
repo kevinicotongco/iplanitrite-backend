@@ -15,7 +15,7 @@ readonly class ClientResponseDto
         public string                    $firstName,
         public ?string                   $middleName,
         public string                    $lastName,
-        public ?DocumentResponseDto      $profilePicture,
+        public ?string                   $profilePicture,
         public ?AddressResponseDto       $address,
         public ?ContactNumberResponseDto $contactNumber,
     ) {}
@@ -29,9 +29,7 @@ readonly class ClientResponseDto
             firstName: $client->first_name,
             middleName: $client->middle_name,
             lastName: $client->last_name,
-            profilePicture: $client->profilePictureDocument
-                ? DocumentResponseDto::fromModel($client->profilePictureDocument)
-                : null,
+            profilePicture: $client->profile_picture,
             address: $client->address
                 ? AddressResponseDto::fromModel($client->address)
                 : null,
@@ -53,7 +51,7 @@ readonly class ClientResponseDto
             'firstName' => $this->firstName,
             'middleName' => $this->middleName,
             'lastName' => $this->lastName,
-            'profilePicture' => $this->profilePicture?->toArray(),
+            'profilePicture' => $this->profilePicture,
             'address' => $this->address?->toArray(),
             'contactNumber' => $this->contactNumber?->toArray(),
         ];

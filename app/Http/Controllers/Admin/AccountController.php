@@ -47,7 +47,6 @@ class AccountController extends Controller
      *             @OA\Schema(
      *                 required={"name", "subscriptionTier", "countryId", "timezone", "staff"},
      *                 @OA\Property(property="name", type="string", example="Acme Events"),
-     *                 @OA\Property(property="logo", type="string", format="binary", description="Logo image file"),
      *                 @OA\Property(property="description", type="string", example="Premium event planning services"),
      *                 @OA\Property(property="subscriptionTier", type="string", enum={"Free", "Standard", "Premium"}, example="Premium"),
      *                 @OA\Property(property="countryId", type="string", format="uuid", example="9d5e8b9a-1234-5678-9abc-def012345678"),
@@ -110,7 +109,7 @@ class AccountController extends Controller
      *     path="/admin/accounts/{id}",
      *     tags={"Admin Accounts"},
      *     summary="Update an existing account",
-     *     description="Update account details including logo, address, and contact information",
+     *     description="Update account details including address, and contact information",
      *     security={{"bearerAuth":{}}},
      *     @OA\Parameter(
      *         name="id",
@@ -126,7 +125,6 @@ class AccountController extends Controller
      *             @OA\Schema(
      *                 required={"name", "subscriptionTier", "countryId", "timezone"},
      *                 @OA\Property(property="name", type="string", example="Acme Events"),
-     *                 @OA\Property(property="logo", type="string", format="binary", description="Logo image file"),
      *                 @OA\Property(property="description", type="string", example="Premium event planning services"),
      *                 @OA\Property(property="subscriptionTier", type="string", enum={"Free", "Standard", "Premium"}, example="Premium"),
      *                 @OA\Property(property="countryId", type="string", format="uuid", example="9d5e8b9a-1234-5678-9abc-def012345678"),

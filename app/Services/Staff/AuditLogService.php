@@ -14,6 +14,8 @@ use App\Models\EventChecklistGroupLog;
 use App\Models\EventChecklistLog;
 use App\Models\EventThemeDocumentGroupLog;
 use App\Models\EventThemeDocumentLog;
+use App\Models\InvoicePayment;
+use App\Models\InvoicePaymentLog;
 use App\Models\Staff;
 use App\Models\Supplier;
 use App\Models\SupplierLog;
@@ -90,6 +92,21 @@ readonly class AuditLogService
             'audit_by' => $auditBy,
             'audit_type' => $auditType->value,
             'event_theme_document_id' => $themeDocumentId,
+            'action' => $action->value,
+        ]);
+    }
+
+    /**
+     * Log an invoice payment action
+     */
+    public function logInvoicePaymentAction(InvoicePayment $payment, AuditActionEnum $action): void
+    {
+        $auditInfo = $this->getAuditInfo();
+
+        InvoicePaymentLog::create([
+            'audit_by' => $auditInfo->auditBy,
+            'audit_type' => $auditInfo->auditType->value,
+            'invoice_payment_id' => $payment->id,
             'action' => $action->value,
         ]);
     }

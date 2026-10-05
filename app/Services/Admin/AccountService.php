@@ -14,17 +14,12 @@ use App\Models\Account;
 use App\Models\AccountRole;
 use App\Models\Staff;
 use App\Notifications\StaffWelcomeNotification;
-use App\Services\DocumentService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 readonly class AccountService
 {
-    public function __construct(
-        private DocumentService $documentService,
-    ) {}
-
     /**
      * @return Collection<int, Account>
      */
@@ -54,12 +49,6 @@ readonly class AccountService
 
     public function createAccount(CreateAccountRequestDto $request): Account
     {
-        $logoDocumentId = null;
-        if ($request->logo) {
-            $document = $this->documentService->uploadFile($request->logo);
-            $logoDocumentId = $document->id;
-        }
-
         $addressId = null;
         if ($request->address) {
             $address = Address::create([
@@ -87,7 +76,6 @@ readonly class AccountService
         $account = Account::create([
             'name' => $request->name,
             'status' => AccountStatusEnum::Active,
-            'logo' => $logoDocumentId,
             'description' => $request->description,
             'address_id' => $addressId,
             'country_id' => $request->countryId,
@@ -136,14 +124,6 @@ readonly class AccountService
             'timezone' => $request->timezone,
             'updated_by' => null,
         ];
-
-        if ($request->logo) {
-            if ($account->logo) {
-                $this->documentService->deleteFile($account->logo);
-            }
-            $document = $this->documentService->uploadFile($request->logo);
-            $updateData['logo'] = $document->id;
-        }
 
         if ($request->address) {
             if ($account->address_id) {

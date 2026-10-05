@@ -17,7 +17,7 @@ readonly class StaffResponseDto
         public string                    $firstName,
         public ?string                   $middleName,
         public string                    $lastName,
-        public ?DocumentResponseDto      $profilePicture,
+        public ?string                   $profilePicture,
         public ?AddressResponseDto       $address,
         public ?ContactNumberResponseDto $contactNumber,
     ) {}
@@ -32,9 +32,7 @@ readonly class StaffResponseDto
             firstName: $staff->first_name,
             middleName: $staff->middle_name,
             lastName: $staff->last_name,
-            profilePicture: $staff->profilePictureDocument
-                ? DocumentResponseDto::fromModel($staff->profilePictureDocument)
-                : null,
+            profilePicture: $staff->profile_picture,
             address: $staff->address
                 ? AddressResponseDto::fromModel($staff->address)
                 : null,
@@ -54,9 +52,7 @@ readonly class StaffResponseDto
             firstName: $data->firstName,
             middleName: $data->middleName,
             lastName: $data->lastName,
-            profilePicture: $data->profilePictureDocument
-                ? DocumentResponseDto::fromModel($data->profilePictureDocument)
-                : null,
+            profilePicture: $data->profilePicture,
             address: $data->address
                 ? AddressResponseDto::fromModel($data->address)
                 : null,
@@ -79,7 +75,7 @@ readonly class StaffResponseDto
             'firstName' => $this->firstName,
             'middleName' => $this->middleName,
             'lastName' => $this->lastName,
-            'profilePicture' => $this->profilePicture?->toArray(),
+            'profilePicture' => $this->profilePicture,
             'address' => $this->address?->toArray(),
             'contactNumber' => $this->contactNumber?->toArray(),
         ];

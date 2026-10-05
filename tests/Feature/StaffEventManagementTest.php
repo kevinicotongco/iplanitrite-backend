@@ -1428,6 +1428,7 @@ class StaffEventManagementTest extends TestCase
     {
         $document = \App\Models\Document::create([
             'id' => Str::uuid()->toString(),
+            'account_id' => $this->account->id,
             'name' => 'thumbnail.jpg',
             'display_name' => 'Event Thumbnail',
             'url' => 'https://example.com/thumbnail.jpg',
@@ -1492,6 +1493,7 @@ class StaffEventManagementTest extends TestCase
     {
         $document = \App\Models\Document::create([
             'id' => Str::uuid()->toString(),
+            'account_id' => $this->account->id,
             'name' => 'new-thumbnail.jpg',
             'display_name' => 'New Thumbnail',
             'url' => 'https://example.com/new-thumbnail.jpg',
@@ -1536,10 +1538,104 @@ class StaffEventManagementTest extends TestCase
         ]);
     }
 
+    /**
+     * @return array<string, array{0: string}>
+     */
+    private function invalidThumbnailDocuments(): array
+    {
+        $otherAccount = Account::create([
+            'id' => Str::uuid()->toString(),
+            'name' => 'Other Account',
+            'status' => AccountStatusEnum::Active,
+            'country_id' => $this->country->id,
+            'subscription_tier' => AccountSubscriptionTierEnum::Free,
+            'timezone' => 'UTC',
+        ]);
+
+        $otherAccountDocument = \App\Models\Document::create([
+            'id' => Str::uuid()->toString(),
+            'account_id' => $otherAccount->id,
+            'name' => 'other.jpg',
+            'display_name' => 'Other',
+            'url' => 'https://example.com/other.jpg',
+            'size' => 1,
+            'mime_type' => 'image/jpeg',
+        ]);
+
+        $deletedDocument = \App\Models\Document::create([
+            'id' => Str::uuid()->toString(),
+            'account_id' => $this->account->id,
+            'name' => 'deleted.jpg',
+            'display_name' => 'Deleted',
+            'url' => 'https://example.com/deleted.jpg',
+            'size' => 1,
+            'mime_type' => 'image/jpeg',
+        ]);
+        $deletedDocument->delete();
+
+        return [
+            'non-existent' => [Str::uuid()->toString()],
+            'soft-deleted' => [$deletedDocument->id],
+            'other account' => [$otherAccountDocument->id],
+        ];
+    }
+
+    public function test_create_event_rejects_invalid_thumbnail_documents(): void
+    {
+        foreach ($this->invalidThumbnailDocuments() as $label => [$thumbnailId]) {
+            $response = $this->withToken($this->token)->postJson('/api/staff/events', [
+                'name' => 'Thumbnail Check',
+                'eventType' => EventTypeEnum::Birthday->value,
+                'eventPackageId' => $this->eventPackageIdFor($this->account->id, EventTypeEnum::Birthday),
+                'thumbnailId' => $thumbnailId,
+                'celebrant' => ['firstName' => 'Jane', 'lastName' => 'Doe'],
+                'segment' => [
+                    'date' => '2024-12-25',
+                    'startTime' => '14:00:00',
+                    'endTime' => '16:00:00',
+                    'address' => ['line1' => '123 Main St', 'city' => 'New York', 'state' => 'NY', 'zip' => '10001'],
+                ],
+                'clients' => [['email' => 'client@example.com', 'firstName' => 'Client', 'lastName' => 'User']],
+            ]);
+
+            $response->assertStatus(422)->assertJsonValidationErrors(['thumbnailId']);
+            $this->assertDatabaseMissing('events', ['name' => 'Thumbnail Check']);
+        }
+    }
+
+    public function test_update_event_rejects_invalid_thumbnail_documents(): void
+    {
+        $event = Event::factory()->create([
+            'account_id' => $this->account->id,
+            'name' => 'Original Event',
+            'event_type' => EventTypeEnum::Birthday,
+            'thumbnail_id' => null,
+        ]);
+        EventSegment::factory()->create(['event_id' => $event->id]);
+
+        foreach ($this->invalidThumbnailDocuments() as $label => [$thumbnailId]) {
+            $response = $this->withToken($this->token)->putJson("/api/staff/events/{$event->id}", [
+                'name' => 'Changed Name',
+                'status' => $event->status->value,
+                'eventType' => EventTypeEnum::Birthday->value,
+                'eventPackageId' => $this->eventPackageIdFor($this->account->id, EventTypeEnum::Birthday),
+                'thumbnailId' => $thumbnailId,
+                'celebrant' => [
+                    'firstName' => $event->celebrantOne->first_name,
+                    'lastName' => $event->celebrantOne->last_name,
+                ],
+            ]);
+
+            $response->assertStatus(422)->assertJsonValidationErrors(['thumbnailId']);
+            $this->assertDatabaseHas('events', ['id' => $event->id, 'name' => 'Original Event', 'thumbnail_id' => null]);
+        }
+    }
+
     public function test_events_list_includes_new_fields(): void
     {
         $document = \App\Models\Document::create([
             'id' => Str::uuid()->toString(),
+            'account_id' => $this->account->id,
             'name' => 'thumb.jpg',
             'display_name' => 'Thumbnail',
             'url' => 'https://example.com/thumb.jpg',

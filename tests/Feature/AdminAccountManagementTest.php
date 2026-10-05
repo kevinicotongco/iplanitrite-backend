@@ -324,12 +324,9 @@ class AdminAccountManagementTest extends TestCase
 
     public function test_admin_can_create_account_with_full_data(): void
     {
-        $logo = UploadedFile::fake()->image('logo.png');
-
         $response = $this->withToken($this->token)
             ->postJson('/api/admin/accounts', [
                 'name' => 'Full Data Account',
-                'logo' => $logo,
                 'description' => 'A comprehensive account',
                 'subscriptionTier' => 'Premium',
                 'countryId' => $this->country->id,

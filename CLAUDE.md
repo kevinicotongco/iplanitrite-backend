@@ -284,3 +284,10 @@ Core Development Rules:
     * Do NOT use inline backticks for every path, endpoint, or class name.
     * Keep text clear, concise, and formatted as clean standard paragraphs.
     * Put code snippets or routes in proper multi-line code blocks rather than inline badges.
+
+16. Document References in Request Bodies
+    * Documents are uploaded first through the staff document upload route, and the returned document id is then sent in the body of the route that needs it (for example proofDocumentId, thumbnailId).
+    * Every document id accepted in a request body MUST be validated: it must be a uuid, the document must exist and not be soft deleted, and its account_id must equal the authenticated staff member account id. A document from another account must be rejected with a 422 validation error.
+    * Do this automatically whenever a request DTO, request validation or service accepts a document id. Do not ask whether to add the check.
+    * Put the ownership check in DocumentService (not in the controller or in another entity service), and call it from the owning service that saves the reference.
+    * Every route that accepts a document id must have tests for: a valid own-account document, a non-existent document id, a soft-deleted document, and a document that belongs to another account.

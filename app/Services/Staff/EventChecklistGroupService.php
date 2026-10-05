@@ -32,8 +32,8 @@ readonly class EventChecklistGroupService
                 'checklists' => fn(HasMany $query): HasMany => $query->orderBy('sort_order'),
                 'checklists.supplier.contactNumber',
                 'checklists.supplier.address.country',
-                'checklists.assignees.staff.profilePictureDocument',
-                'checklists.assignees.client.profilePictureDocument',
+                'checklists.assignees.staff',
+                'checklists.assignees.client',
             ])
             ->get()
             ->map(fn(EventChecklistGroup $group): EventChecklistGroupWithChecklistsData => EventChecklistGroupWithChecklistsData::fromModel($group));

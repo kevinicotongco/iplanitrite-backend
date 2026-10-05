@@ -30,11 +30,6 @@ class Client extends Authenticatable
         return $this->belongsTo(Account::class, 'account_id');
     }
 
-    public function profilePictureDocument(): BelongsTo
-    {
-        return $this->belongsTo(Document::class, 'profile_picture');
-    }
-
     public function address(): BelongsTo
     {
         return $this->belongsTo(Address::class);

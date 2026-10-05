@@ -44,7 +44,7 @@ readonly class EventChecklistAssigneeService
         }
 
         return $this->eventChecklistAssigneeModel::where('event_checklist_id', $eventChecklist->id)
-            ->with(['staff.profilePictureDocument', 'client.profilePictureDocument'])
+            ->with(['staff', 'client'])
             ->get()
             ->map(fn(EventChecklistAssignee $assignee): ?EventChecklistAssigneeData => EventChecklistAssigneeData::fromModel($assignee))
             ->filter()

@@ -22,7 +22,6 @@ class UpdateAccountRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'logo' => ['nullable', 'file', 'image', 'max:5120'],
             'description' => ['nullable', 'string'],
             'subscriptionTier' => ['required', 'string', Rule::in(array_column(AccountSubscriptionTierEnum::cases(), 'value'))],
             'countryId' => ['required', 'uuid', 'exists:countries,id'],

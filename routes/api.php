@@ -3,7 +3,13 @@
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AccountController;
 use App\Http\Controllers\Client\ClientUserController;
+use App\Enums\AccountRolePermissionEnum;
+use App\Http\Controllers\Staff\AccountBankDetailController;
 use App\Http\Controllers\Staff\AccountRoleController;
+use App\Http\Controllers\Staff\DocumentController;
+use App\Http\Controllers\Staff\InvoiceController;
+use App\Http\Controllers\Staff\InvoiceItemController;
+use App\Http\Controllers\Staff\InvoicePaymentController;
 use App\Http\Controllers\Staff\AccountTemplateChecklistController;
 use App\Http\Controllers\Staff\AccountTemplateChecklistGroupController;
 use App\Http\Controllers\Staff\EventChecklistController;
@@ -200,8 +206,73 @@ Route::middleware(['auth:staff', BindAuthenticatedUser::class])->prefix('staff')
             ->name('staff.event_checklists.update_supplier');
     });
 
+    // Document Upload
+    Route::post('/documents', [DocumentController::class, 'store'])
+        ->name('staff.documents.store');
+
+    // Account Bank Detail Management
+    Route::prefix('/bank-details')->whereUuid('bankDetailId')->group(function () {
+        Route::get('/', [AccountBankDetailController::class, 'index'])
+            ->middleware('staff.permission:' . AccountRolePermissionEnum::BankDetailList->value)
+            ->name('staff.bank_details.index');
+
+        Route::post('/', [AccountBankDetailController::class, 'store'])
+            ->middleware('staff.permission:' . AccountRolePermissionEnum::BankDetailCreate->value)
+            ->name('staff.bank_details.store');
+
+        Route::put('/{bankDetailId}', [AccountBankDetailController::class, 'update'])
+            ->middleware('staff.permission:' . AccountRolePermissionEnum::BankDetailUpdate->value)
+            ->name('staff.bank_details.update');
+
+        Route::delete('/{bankDetailId}', [AccountBankDetailController::class, 'destroy'])
+            ->middleware('staff.permission:' . AccountRolePermissionEnum::BankDetailDelete->value)
+            ->name('staff.bank_details.destroy');
+    });
+
+    // Event Invoice Management
+    Route::prefix('/events/{eventId}/invoices')->whereUuid(['eventId', 'invoiceId', 'paymentId', 'invoiceItemId'])->group(function () {
+        Route::get('/', [InvoiceController::class, 'index'])
+            ->name('staff.invoices.index');
+
+        Route::post('/', [InvoiceController::class, 'store'])
+            ->name('staff.invoices.store');
+
+        Route::get('/{invoiceId}', [InvoiceController::class, 'show'])
+            ->name('staff.invoices.show');
+
+        Route::put('/{invoiceId}/due-date', [InvoiceController::class, 'updateDueDate'])
+            ->name('staff.invoices.update_due_date');
+
+        Route::put('/{invoiceId}/ready', [InvoiceController::class, 'markReady'])
+            ->name('staff.invoices.ready');
+
+        Route::put('/{invoiceId}/pending', [InvoiceController::class, 'markPending'])
+            ->name('staff.invoices.pending');
+
+        Route::put('/{invoiceId}/cancel', [InvoiceController::class, 'cancel'])
+            ->name('staff.invoices.cancel');
+
+        Route::get('/{invoiceId}/payments', [InvoicePaymentController::class, 'index'])
+            ->name('staff.invoice_payments.index');
+
+        Route::post('/{invoiceId}/payments', [InvoicePaymentController::class, 'store'])
+            ->name('staff.invoice_payments.store');
+
+        Route::put('/{invoiceId}/payments/{paymentId}/status', [InvoicePaymentController::class, 'updateStatus'])
+            ->name('staff.invoice_payments.update_status');
+
+        Route::get('/{invoiceId}/items', [InvoiceItemController::class, 'index'])
+            ->name('staff.invoice_items.index');
+
+        Route::post('/{invoiceId}/items', [InvoiceItemController::class, 'store'])
+            ->name('staff.invoice_items.store');
+
+        Route::put('/{invoiceId}/items/{invoiceItemId}', [InvoiceItemController::class, 'update'])
+            ->name('staff.invoice_items.update');
+    });
+
     // Supplier Management
-    Route::get('/suppliers', [SupplierController::class, 'index'])
+    Route::get('/suppliers',[SupplierController::class, 'index'])
         ->name('staff.suppliers.index');
 
     Route::get('/suppliers/{supplierId}', [SupplierController::class, 'show'])

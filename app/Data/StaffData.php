@@ -6,7 +6,6 @@ namespace App\Data;
 
 use App\Models\Address;
 use App\Models\ContactNumber;
-use App\Models\Document;
 use App\Models\Staff;
 
 final readonly class StaffData
@@ -21,10 +20,9 @@ final readonly class StaffData
         public string $lastName,
         public ?string $addressId,
         public ?string $contactNumberId,
-        public ?string $profilePictureId,
+        public ?string $profilePicture,
         public ?Address $address,
         public ?ContactNumber $contactNumber,
-        public ?Document $profilePictureDocument,
     ) {}
 
     public static function fromModel(Staff $staff): self
@@ -39,10 +37,9 @@ final readonly class StaffData
             lastName: $staff->last_name,
             addressId: $staff->address_id,
             contactNumberId: $staff->contact_number_id,
-            profilePictureId: $staff->profile_picture,
+            profilePicture: $staff->profile_picture,
             address: $staff->address,
             contactNumber: $staff->contactNumber,
-            profilePictureDocument: $staff->profilePictureDocument,
         );
     }
 }

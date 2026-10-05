@@ -29,7 +29,7 @@ readonly class StaffManagementService
     public function getStaff(): Collection
     {
         $staff = Staff::where('account_id', $this->authenticatedUser->accountId)
-            ->with(['address', 'contactNumber', 'profilePictureDocument'])
+            ->with(['address', 'contactNumber'])
             ->get();
 
         return $staff->map(fn($s) => StaffData::fromModel($s));

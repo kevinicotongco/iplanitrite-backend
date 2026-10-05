@@ -426,14 +426,9 @@ class StaffEventChecklistManagementTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonPath('0.assigneeName', 'Test Staff')
-            ->assertJsonPath('0.assigneeProfilePicture.name', 'staff.png')
+            ->assertJsonPath('0.assigneeProfilePicture', self::STAFF_PROFILE_PICTURE)
             ->assertJsonStructure([
-                '*' => [
-                    'assigneeId',
-                    'assigneeType',
-                    'assigneeName',
-                    'assigneeProfilePicture' => ['id', 'name', 'displayName', 'url', 'size', 'mimeType'],
-                ],
+                '*' => ['assigneeId', 'assigneeType', 'assigneeName', 'assigneeProfilePicture'],
             ]);
     }
 

@@ -27,7 +27,7 @@ class CreateEventRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'eventType' => ['required', 'string', Rule::in(array_column(EventTypeEnum::cases(), 'value'))],
-            'thumbnailId' => ['nullable', 'uuid', 'exists:documents,id'],
+            'thumbnailId' => ['nullable', 'uuid'],
             'dressCode' => ['nullable', 'string', 'max:255'],
             'theme' => ['nullable', 'string', 'max:255'],
             'eventPackageId' => ['required', 'uuid'],

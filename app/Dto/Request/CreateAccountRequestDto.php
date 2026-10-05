@@ -5,13 +5,11 @@ declare(strict_types=1);
 namespace App\Dto\Request;
 
 use App\Enums\AccountSubscriptionTierEnum;
-use Illuminate\Http\UploadedFile;
 
 readonly class CreateAccountRequestDto
 {
     public function __construct(
         public string $name,
-        public ?UploadedFile $logo,
         public ?string $description,
         public AccountSubscriptionTierEnum $subscriptionTier,
         public string $countryId,
@@ -28,7 +26,6 @@ readonly class CreateAccountRequestDto
     {
         return new self(
             name: $data['name'],
-            logo: $data['logo'] ?? null,
             description: $data['description'] ?? null,
             subscriptionTier: AccountSubscriptionTierEnum::from($data['subscriptionTier']),
             countryId: $data['countryId'],

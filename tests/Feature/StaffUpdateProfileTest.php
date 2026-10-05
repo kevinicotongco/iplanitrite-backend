@@ -10,11 +10,12 @@ use App\Models\Staff;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Tests\Concerns\CreatesBase64Images;
 use Tests\TestCase;
 
 class StaffUpdateProfileTest extends TestCase
 {
-    use RefreshDatabase;
+    use CreatesBase64Images, RefreshDatabase;
 
     private Account $acc;
     private AccountRole $accountRole;
@@ -105,5 +106,39 @@ class StaffUpdateProfileTest extends TestCase
         ]);
 
         $response->assertStatus(401);
+    }
+
+    public function test_staff_can_update_avatar_with_base64_png(): void
+    {
+        $avatar = $this->base64Png();
+
+        $this->actingAs($this->staff, 'staff')
+            ->putJson('/api/staff/profile', ['avatar' => $avatar, 'firstName' => 'Updated', 'lastName' => 'Name'])
+            ->assertStatus(200)
+            ->assertJsonPath('profilePicture', $avatar);
+
+        $this->assertDatabaseHas('staff', ['id' => $this->staff->id, 'profile_picture' => $avatar]);
+    }
+
+    public function test_staff_can_update_avatar_with_base64_jpeg_data_uri(): void
+    {
+        $avatar = 'data:image/jpeg;base64,' . $this->base64Jpeg();
+
+        $this->actingAs($this->staff, 'staff')
+            ->putJson('/api/staff/profile', ['avatar' => $avatar, 'firstName' => 'Updated', 'lastName' => 'Name'])
+            ->assertStatus(200)
+            ->assertJsonPath('profilePicture', $avatar);
+    }
+
+    public function test_staff_update_rejects_invalid_avatars(): void
+    {
+        foreach ($this->invalidAvatarPayloads() as [$payload]) {
+            $this->actingAs($this->staff, 'staff')
+                ->putJson('/api/staff/profile', ['avatar' => $payload, 'firstName' => 'Updated', 'lastName' => 'Name'])
+                ->assertStatus(422)
+                ->assertJsonValidationErrors(['avatar']);
+        }
+
+        $this->assertDatabaseHas('staff', ['id' => $this->staff->id, 'profile_picture' => null]);
     }
 }

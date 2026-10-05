@@ -14,4 +14,8 @@ enum AccountRolePermissionEnum: string
     case EventCreate = 'EventCreate';
     case EventUpdate = 'EventUpdate';
     case EventDelete = 'EventDelete';
+    case BankDetailList = 'BankDetailList';
+    case BankDetailCreate = 'BankDetailCreate';
+    case BankDetailUpdate = 'BankDetailUpdate';
+    case BankDetailDelete = 'BankDetailDelete';
 }

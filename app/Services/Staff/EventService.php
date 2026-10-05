@@ -17,6 +17,7 @@ use App\Models\Event;
 use App\Notifications\EventCreatedNotification;
 use Exception;
 use Illuminate\Support\Collection;
+use Illuminate\Validation\ValidationException;
 
 readonly class EventService
 {
@@ -30,6 +31,7 @@ readonly class EventService
         private EventSegmentService $eventSegmentService,
         private EventPackageService $eventPackageService,
         private EventPriceService $eventPriceService,
+        private DocumentService $documentService,
     ) {}
 
     /**
@@ -72,6 +74,8 @@ readonly class EventService
     public function createEvent(CreateEventRequestDto $dto): void
     {
         $eventPackage = $this->eventPackageService->getAssignablePackage($dto->eventPackageId, $dto->eventType);
+
+        $this->assertThumbnailBelongsToAccount($dto->thumbnailId);
 
         $account = Account::findOrFail($this->authenticatedUser->accountId);
         $countryId = $account->country_id;
@@ -146,6 +150,8 @@ readonly class EventService
             allowDeleted: !$isPackageChanged,
         );
 
+        $this->assertThumbnailBelongsToAccount($dto->thumbnailId);
+
         $account = Account::findOrFail($this->authenticatedUser->accountId);
         $countryId = $account->country_id;
 
@@ -184,6 +190,16 @@ readonly class EventService
         }
     }
 
+    /**
+     * @throws ValidationException
+     */
+    private function assertThumbnailBelongsToAccount(?string $thumbnailId): void
+    {
+        if ($thumbnailId !== null) {
+            $this->documentService->getDocumentForAccount($thumbnailId, 'thumbnailId');
+        }
+    }
+
     public function getEventForAccount(string $eventId): Event
     {
         return $this->eventModel::where('id', $eventId)
@@ -205,7 +221,6 @@ readonly class EventService
                 'themeDocumentGroups.themeDocuments.document',
                 'clients.address',
                 'clients.contactNumber',
-                'clients.profilePictureDocument',
                 'guestGroups.guests'
             ])
             ->firstOrFail();

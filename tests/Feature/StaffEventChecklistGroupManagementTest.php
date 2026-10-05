@@ -91,7 +91,7 @@ class StaffEventChecklistGroupManagementTest extends TestCase
         $assignees = collect($response->json('supplier.1.checklists.0.assignees'))->keyBy('assigneeType');
         $this->assertSame($this->staff->id, $assignees['Staff']['assigneeId']);
         $this->assertSame('Test Staff', $assignees['Staff']['assigneeName']);
-        $this->assertSame('staff.png', $assignees['Staff']['assigneeProfilePicture']['name']);
+        $this->assertSame(self::STAFF_PROFILE_PICTURE, $assignees['Staff']['assigneeProfilePicture']);
         $this->assertSame($this->client->id, $assignees['Client']['assigneeId']);
         $this->assertSame('Test Client', $assignees['Client']['assigneeName']);
         $this->assertNull($assignees['Client']['assigneeProfilePicture']);
