@@ -248,6 +248,13 @@ class StaffEventManagementTest extends TestCase
             'email' => 'client1@example.com',
             'account_id' => $this->account->id,
         ]);
+
+        $event = \App\Models\Event::where('name', 'John\'s Birthday')->firstOrFail();
+        $floorPlan = \App\Models\EventFloorPlan::where('event_id', $event->id)->firstOrFail();
+        $this->assertSame([], $floorPlan->canvas_state['objects']);
+        $this->assertSame('1.0', $floorPlan->canvas_state['version']);
+        $this->assertSame($this->staff->id, $floorPlan->created_by);
+        $this->assertSame($this->staff->id, $floorPlan->updated_by);
     }
 
     public function test_can_create_event_with_two_celebrants(): void

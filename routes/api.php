@@ -3,6 +3,9 @@
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AccountController;
 use App\Http\Controllers\Client\ClientUserController;
+use App\Http\Controllers\Client\EventFloorPlanController as ClientEventFloorPlanController;
+use App\Http\Controllers\Client\EventSeatController;
+use App\Http\Controllers\Staff\EventFloorPlanController;
 use App\Enums\AccountRolePermissionEnum;
 use App\Http\Controllers\Staff\AccountBankDetailController;
 use App\Http\Controllers\Staff\AccountRoleController;
@@ -135,6 +138,15 @@ Route::middleware(['auth:staff', BindAuthenticatedUser::class])->prefix('staff')
 
     Route::put('/events/{id}', [EventController::class, 'update'])
         ->name('staff.events.update');
+
+    // Event Floor Plan Management
+    Route::get('/events/{eventId}/floor-plan', [EventFloorPlanController::class, 'show'])
+        ->whereUuid('eventId')
+        ->name('staff.event_floor_plans.show');
+
+    Route::put('/events/{eventId}/floor-plans/{floorPlanId}', [EventFloorPlanController::class, 'update'])
+        ->whereUuid(['eventId', 'floorPlanId'])
+        ->name('staff.event_floor_plans.update');
 
     // Event Price Management
     Route::prefix('/events/{eventId}/prices')->whereUuid(['eventId', 'eventPriceId'])->group(function () {
@@ -341,4 +353,17 @@ Route::middleware(['auth:client', BindAuthenticatedUser::class])->prefix('client
     
     Route::put('/password', [ClientUserController::class, 'changePassword'])
         ->name('clients.change_password');
+
+    // Event Floor Plan
+    Route::get('/events/{eventId}/floor-plan', [ClientEventFloorPlanController::class, 'show'])
+        ->whereUuid('eventId')
+        ->name('clients.event_floor_plans.show');
+
+    Route::put('/events/{eventId}/floor-plans/{floorPlanId}/seats/by-table/{tableId}', [EventSeatController::class, 'updateByTable'])
+        ->whereUuid(['eventId', 'floorPlanId'])
+        ->name('clients.event_seats.update_by_table');
+
+    Route::put('/events/{eventId}/floor-plans/{floorPlanId}/seats/by-seats/{tableId}', [EventSeatController::class, 'updateBySeat'])
+        ->whereUuid(['eventId', 'floorPlanId'])
+        ->name('clients.event_seats.update_by_seat');
 });

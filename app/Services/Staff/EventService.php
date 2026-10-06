@@ -32,6 +32,7 @@ readonly class EventService
         private EventPackageService $eventPackageService,
         private EventPriceService $eventPriceService,
         private DocumentService $documentService,
+        private EventFloorPlanService $eventFloorPlanService,
     ) {}
 
     /**
@@ -109,6 +110,8 @@ readonly class EventService
         ]);
 
         $this->eventPriceService->createInitialPrice($event, $eventPackage);
+
+        $this->eventFloorPlanService->createDefaultFloorPlan($event);
 
         // Create event segments
         $this->eventSegmentService->createEventSegments($event, $dto->segments, $countryId);

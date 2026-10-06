@@ -70,6 +70,11 @@ class Event extends Model
         return $this->hasMany(EventGuestGroup::class);
     }
 
+    public function floorPlans(): HasMany
+    {
+        return $this->hasMany(EventFloorPlan::class);
+    }
+
     public function segments(): HasMany
     {
         return $this->hasMany(EventSegment::class);

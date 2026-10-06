@@ -86,6 +86,13 @@ Core Development Rules:
     * If an operation on Model A requires mutating or creating Model B, ModelAService must inject and delegate the task to ModelBService rather than interacting with Model B directly.
       Example: When executing Create Event, EventService must create the event itself, but MUST call CelebrantService to handle creation or updates for the associated celebrants. Direct creation of Celebrant models inside EventService is strictly forbidden.
 
+   Actor Separation Rule:
+    * Services are separated by actor. Everything the staff does lives in app/Services/Staff, everything the client does lives in app/Services/Client, and everything the admin does lives in app/Services/Admin.
+    * A service must serve exactly one actor. A client route must never call a Staff service, a staff route must never call a Client service, and so on.
+    * Each actor-specific service injects its own authenticated user (StaffAuthenticatedUser, ClientAuthenticatedUser, AdminAuthenticatedUser) instead of receiving user ids as parameters.
+    * If both actors need the same behavior on a model, each actor gets its own service for that model (for example Staff/EventSeatService and Client/EventSeatService). Duplicating a small read query is preferred over sharing a service between actors.
+    * Do not create shared services in the root app/Services folder for models that actors touch (AddressService and ContactNumberService are the only existing exceptions).
+
    Models are responsible for:
     * Database relationships.
     * Casts.
