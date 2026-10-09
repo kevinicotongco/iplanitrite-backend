@@ -10,4 +10,5 @@ enum EventGuestStatusEnum: string
     case Requested = 'Requested';
     case Denied = 'Denied';
     case Approved = 'Approved';
+    case Cancelled = 'Cancelled';
 }

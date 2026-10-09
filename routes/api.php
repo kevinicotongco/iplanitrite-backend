@@ -4,7 +4,12 @@ use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AccountController;
 use App\Http\Controllers\Client\ClientUserController;
 use App\Http\Controllers\Client\EventFloorPlanController as ClientEventFloorPlanController;
+use App\Http\Controllers\Client\EventChecklistController as ClientEventChecklistController;
+use App\Http\Controllers\Client\EventChecklistGroupController as ClientEventChecklistGroupController;
+use App\Http\Controllers\Client\EventGuestController;
+use App\Http\Controllers\Client\EventGuestGroupController;
 use App\Http\Controllers\Client\EventSeatController;
+use App\Http\Controllers\Client\SupplierController as ClientSupplierController;
 use App\Http\Controllers\Staff\EventFloorPlanController;
 use App\Enums\AccountRolePermissionEnum;
 use App\Http\Controllers\Staff\AccountBankDetailController;
@@ -366,4 +371,57 @@ Route::middleware(['auth:client', BindAuthenticatedUser::class])->prefix('client
     Route::put('/events/{eventId}/floor-plans/{floorPlanId}/seats/by-seats/{tableId}', [EventSeatController::class, 'updateBySeat'])
         ->whereUuid(['eventId', 'floorPlanId'])
         ->name('clients.event_seats.update_by_seat');
+
+    // Event Checklists & Suppliers
+    Route::get('/events/{eventId}/checklist-groups', [ClientEventChecklistGroupController::class, 'index'])
+        ->whereUuid('eventId')
+        ->name('clients.event_checklist_groups.index');
+
+    Route::patch('/events/{eventId}/checklists/{checklistId}/status', [ClientEventChecklistController::class, 'updateStatus'])
+        ->whereUuid(['eventId', 'checklistId'])
+        ->name('clients.event_checklists.update_status');
+
+    Route::patch('/events/{eventId}/checklists/{checklistId}/supplier', [ClientEventChecklistController::class, 'updateSupplier'])
+        ->whereUuid(['eventId', 'checklistId'])
+        ->name('clients.event_checklists.update_supplier');
+
+    Route::post('/events/{eventId}/suppliers', [ClientSupplierController::class, 'store'])
+        ->whereUuid('eventId')
+        ->name('clients.suppliers.store');
+
+    // Event RSVP
+    Route::prefix('/events/{eventId}/guest-groups')->whereUuid('eventId')->group(function () {
+        Route::get('/', [EventGuestGroupController::class, 'index'])
+            ->name('clients.event_guest_groups.index');
+
+        Route::post('/', [EventGuestGroupController::class, 'store'])
+            ->name('clients.event_guest_groups.store');
+
+        Route::post('/sort', [EventGuestGroupController::class, 'updateSort'])
+            ->name('clients.event_guest_groups.update_sort');
+
+        Route::put('/{eventGuestGroupId}', [EventGuestGroupController::class, 'update'])
+            ->whereUuid('eventGuestGroupId')
+            ->name('clients.event_guest_groups.update');
+
+        Route::post('/{eventGuestGroupId}/guests', [EventGuestController::class, 'store'])
+            ->whereUuid('eventGuestGroupId')
+            ->name('clients.event_guests.store');
+
+        Route::post('/{eventGuestGroupId}/guests/sort', [EventGuestController::class, 'updateSort'])
+            ->whereUuid('eventGuestGroupId')
+            ->name('clients.event_guests.update_sort');
+
+        Route::put('/{eventGuestGroupId}/guests/{guestId}', [EventGuestController::class, 'update'])
+            ->whereUuid(['eventGuestGroupId', 'guestId'])
+            ->name('clients.event_guests.update');
+
+        Route::put('/{eventGuestGroupId}/guests/{guestId}/cancel', [EventGuestController::class, 'cancel'])
+            ->whereUuid(['eventGuestGroupId', 'guestId'])
+            ->name('clients.event_guests.cancel');
+
+        Route::delete('/{eventGuestGroupId}/guests/{guestId}', [EventGuestController::class, 'destroy'])
+            ->whereUuid(['eventGuestGroupId', 'guestId'])
+            ->name('clients.event_guests.destroy');
+    });
 });

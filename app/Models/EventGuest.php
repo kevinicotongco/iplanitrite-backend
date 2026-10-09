@@ -21,6 +21,7 @@ class EventGuest extends Model
 
     protected $casts = [
         'status' => EventGuestStatusEnum::class,
+        'sort_order' => 'integer',
     ];
 
     public function group(): BelongsTo
@@ -28,28 +29,13 @@ class EventGuest extends Model
         return $this->belongsTo(EventGuestGroup::class, 'event_guest_group_id');
     }
 
-    public function profilePictureDocument(): BelongsTo
-    {
-        return $this->belongsTo(Document::class, 'profile_picture');
-    }
-
-    public function address(): BelongsTo
-    {
-        return $this->belongsTo(Address::class);
-    }
-
-    public function contactNumber(): BelongsTo
-    {
-        return $this->belongsTo(ContactNumber::class);
-    }
-
     public function creator(): BelongsTo
     {
-        return $this->belongsTo(Admin::class, 'created_by');
+        return $this->belongsTo(Client::class, 'created_by');
     }
 
     public function updater(): BelongsTo
     {
-        return $this->belongsTo(Admin::class, 'updated_by');
+        return $this->belongsTo(Client::class, 'updated_by');
     }
 }

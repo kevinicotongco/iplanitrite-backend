@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Concerns;
 
-use App\Enums\EventTypeEnum;
 use App\Enums\FloorPlanObjectCategoryEnum;
 use App\Enums\FloorPlanObjectShapeEnum;
 use App\Enums\FloorPlanObjectTypeEnum;
@@ -149,13 +148,14 @@ trait CreatesFloorPlanFixtures
     {
         $group = EventGuestGroup::firstOrCreate(
             ['event_id' => $event->id, 'name' => 'Family'],
-            ['event_type' => EventTypeEnum::Birthday->value],
+            ['sort_order' => 1],
         );
 
         return EventGuest::create([
             'event_guest_group_id' => $group->id,
             'first_name' => $firstName,
             'last_name' => 'Tester',
+            'sort_order' => 1,
         ]);
     }
 
