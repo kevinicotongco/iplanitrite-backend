@@ -7,7 +7,9 @@ namespace App\Services\Client;
 use App\Data\Auth\ClientAuthenticatedUser;
 use App\Data\FloorPlanCanvasData;
 use App\Dto\Request\EventSeatAssignmentRequestDto;
+use App\Enums\EventGuestStatusEnum;
 use App\Models\EventFloorPlan;
+use App\Models\EventGuest;
 use App\Models\EventSeat;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
@@ -96,6 +98,54 @@ readonly class EventSeatService
         foreach ($assignments as $assignment) {
             $this->createSeat($floorPlan, $tableId, $assignment->seatId, $assignment->eventGuestId);
         }
+    }
+
+    /**
+     * @throws ValidationException
+     */
+    public function assignGuestToSeat(EventFloorPlan $floorPlan, EventGuest $guest, string $seatId): void
+    {
+        if (in_array($guest->status, [EventGuestStatusEnum::Denied, EventGuestStatusEnum::Cancelled], true)) {
+            throw ValidationException::withMessages([
+                'status' => 'Denied or cancelled guests cannot be seated.',
+            ]);
+        }
+
+        $table = FloorPlanCanvasData::fromArray($floorPlan->canvas_state)->findTableBySeat($seatId);
+
+        if ($table === null) {
+            throw ValidationException::withMessages([
+                'seatId' => 'The selected seat is invalid.',
+            ]);
+        }
+
+        $occupiedBy = $this->eventSeatModel::where('event_floor_plan_id', $floorPlan->id)
+            ->where('table_id', $table->id)
+            ->where('seat_id', $seatId)
+            ->value('event_guest_id');
+
+        if ($occupiedBy === $guest->id) {
+            return;
+        }
+
+        if ($occupiedBy !== null) {
+            throw ValidationException::withMessages([
+                'seatId' => 'The selected seat is already taken.',
+            ]);
+        }
+
+        $this->deleteSeats($floorPlan, guestIds: [$guest->id]);
+        $this->createSeat($floorPlan, $table->id, $seatId, $guest->id);
+    }
+
+    public function unassignGuestFromAllFloorPlans(EventGuest $guest): void
+    {
+        $this->eventSeatModel::where('event_guest_id', $guest->id)->delete();
+    }
+
+    public function unassignGuest(EventFloorPlan $floorPlan, EventGuest $guest): void
+    {
+        $this->deleteSeats($floorPlan, guestIds: [$guest->id]);
     }
 
     /**

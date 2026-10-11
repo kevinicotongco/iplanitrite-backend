@@ -6,8 +6,10 @@ namespace Tests\Feature;
 
 use App\Enums\EventGuestStatusEnum;
 use App\Models\Event;
+use App\Models\EventFloorPlan;
 use App\Models\EventGuest;
 use App\Models\EventGuestGroup;
+use App\Models\EventSeat;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Tests\Concerns\CreatesEventChecklistFixtures;
@@ -51,6 +53,23 @@ class ClientEventGuestTest extends TestCase
             'last_name' => 'Tester',
             'sort_order' => $sortOrder,
             'status' => $status,
+        ]);
+    }
+
+    private function createFloorPlanFor(Event $event): EventFloorPlan
+    {
+        return EventFloorPlan::factory()->create(['event_id' => $event->id]);
+    }
+
+    private function seatGuestAt(EventFloorPlan $floorPlan, string $seatId, EventGuest $guest): void
+    {
+        EventSeat::create([
+            'event_floor_plan_id' => $floorPlan->id,
+            'table_id' => 'tbl_x',
+            'seat_id' => $seatId,
+            'event_guest_id' => $guest->id,
+            'created_by' => $this->client->id,
+            'updated_by' => $this->client->id,
         ]);
     }
 
@@ -416,6 +435,35 @@ class ClientEventGuestTest extends TestCase
             'status_reason' => 'Cannot attend',
             'updated_by' => $this->client->id,
         ]);
+    }
+
+    public function test_cancel_removes_the_guest_seat_only(): void
+    {
+        $floorPlan = $this->createFloorPlanFor($this->event);
+        $guest = $this->makeGuest($this->groupA, 'Going', 1, EventGuestStatusEnum::Approved);
+        $other = $this->makeGuest($this->groupA, 'Staying', 2, EventGuestStatusEnum::Approved);
+        $this->seatGuestAt($floorPlan, 'seat_a', $guest);
+        $this->seatGuestAt($floorPlan, 'seat_b', $other);
+
+        $this->actingAs($this->client, 'client')
+            ->putJson($this->guestUrl($this->groupA, $guest, '/cancel'), ['statusReason' => 'Cannot attend'])
+            ->assertStatus(200);
+
+        $this->assertDatabaseMissing('event_seats', ['event_guest_id' => $guest->id]);
+        $this->assertDatabaseHas('event_seats', ['event_guest_id' => $other->id]);
+    }
+
+    public function test_failed_cancel_keeps_the_guest_seat(): void
+    {
+        $floorPlan = $this->createFloorPlanFor($this->event);
+        $guest = $this->makeGuest($this->groupA, 'Pending', 1, EventGuestStatusEnum::Pending);
+        $this->seatGuestAt($floorPlan, 'seat_a', $guest);
+
+        $this->actingAs($this->client, 'client')
+            ->putJson($this->guestUrl($this->groupA, $guest, '/cancel'), ['statusReason' => 'x'])
+            ->assertStatus(422);
+
+        $this->assertDatabaseHas('event_seats', ['event_guest_id' => $guest->id]);
     }
 
     public function test_cancel_rejects_non_approved_guest(): void

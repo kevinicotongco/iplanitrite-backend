@@ -83,6 +83,17 @@ final readonly class FloorPlanCanvasData
         return null;
     }
 
+    public function findTableBySeat(string $seatId): ?FloorPlanTableData
+    {
+        foreach ($this->tables() as $table) {
+            if (in_array($seatId, $table->seats, true)) {
+                return $table;
+            }
+        }
+
+        return null;
+    }
+
     public function hasSeat(string $tableId, string $seatId): bool
     {
         return in_array($seatId, $this->findTable($tableId)?->seats ?? [], true);

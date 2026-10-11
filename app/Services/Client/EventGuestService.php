@@ -148,7 +148,7 @@ readonly class EventGuestService
         }
     }
 
-    private function getGuestForGroup(EventGuestGroup $group, string $eventGuestId): EventGuest
+    public function getGuestForGroup(EventGuestGroup $group, string $eventGuestId): EventGuest
     {
         return $this->eventGuestModel::where('id', $eventGuestId)
             ->where('event_guest_group_id', $group->id)

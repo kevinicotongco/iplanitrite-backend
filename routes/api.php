@@ -420,6 +420,14 @@ Route::middleware(['auth:client', BindAuthenticatedUser::class])->prefix('client
             ->whereUuid(['eventGuestGroupId', 'guestId'])
             ->name('clients.event_guests.cancel');
 
+        Route::put('/{eventGuestGroupId}/guests/{guestId}/assign', [EventGuestController::class, 'assign'])
+            ->whereUuid(['eventGuestGroupId', 'guestId'])
+            ->name('clients.event_guests.assign');
+
+        Route::put('/{eventGuestGroupId}/guests/{guestId}/unassign', [EventGuestController::class, 'unassign'])
+            ->whereUuid(['eventGuestGroupId', 'guestId'])
+            ->name('clients.event_guests.unassign');
+
         Route::delete('/{eventGuestGroupId}/guests/{guestId}', [EventGuestController::class, 'destroy'])
             ->whereUuid(['eventGuestGroupId', 'guestId'])
             ->name('clients.event_guests.destroy');

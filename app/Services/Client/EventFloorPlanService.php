@@ -15,11 +15,16 @@ readonly class EventFloorPlanService
         private EventSeatService $eventSeatService,
     ) {}
 
-    public function getFloorPlanWithSeats(Event $event): EventFloorPlanWithSeatsData
+    public function getFirstFloorPlanForEvent(Event $event): EventFloorPlan
     {
-        $floorPlan = $this->eventFloorPlanModel::where('event_id', $event->id)
+        return $this->eventFloorPlanModel::where('event_id', $event->id)
             ->orderBy('created_at')
             ->firstOrFail();
+    }
+
+    public function getFloorPlanWithSeats(Event $event): EventFloorPlanWithSeatsData
+    {
+        $floorPlan = $this->getFirstFloorPlanForEvent($event);
 
         return new EventFloorPlanWithSeatsData(
             floorPlan: $floorPlan,
